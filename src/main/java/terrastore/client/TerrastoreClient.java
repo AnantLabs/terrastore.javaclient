@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.ext.RuntimeDelegate;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
@@ -197,13 +196,16 @@ public class TerrastoreClient {
      * @param startKey First key in range.
      * @param endKey Last key in range (comprised).
      * @param comparator The name of the comparator to use for determining if a key belongs to the range.
+     * @param timeToLive Number of milliseconds determining how fresh the retrieved data has to be; if set to 0, the query will be immediately computed
+     * on current data.
      * @param type Type of the objects to get (as contained in the given bucket).
      * @return A map of key/value pairs.
      * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> Values<T> doRangeQuery(String bucket, String startKey, String endKey, String comparator, Class<T> type) throws Exception, TerrastoreRequestException {
+    public <T> Values<T> doRangeQuery(String bucket, String startKey, String endKey, String comparator, long timeToLive, Class<T> type) throws Exception, TerrastoreRequestException {
         String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("range").queryParam("startKey", startKey).queryParam("endKey", endKey).queryParam("comparator", comparator).
+                queryParam("timeToLive", timeToLive).
                 build().toString();
         ClientRequest request = requestFactory.createRequest(requestUri);
         ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();

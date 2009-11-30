@@ -154,7 +154,7 @@ public class TerrastoreClientTest {
     @Test
     public void testDoRangeQuery() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", "lexical-asc", TestValue.class);
+        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", "lexical-asc", 0, TestValue.class);
         assertNotNull(map);
         assertEquals(2, map.size());
         List<TestValue> values = new ArrayList<TestValue>(map.values());
