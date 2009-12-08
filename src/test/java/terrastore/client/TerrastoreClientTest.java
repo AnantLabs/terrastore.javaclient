@@ -40,6 +40,7 @@ import terrastore.service.UpdateOperationException;
 import terrastore.service.UpdateService;
 import terrastore.service.comparators.LexicographicalComparator;
 import terrastore.store.Value;
+import terrastore.store.features.Predicate;
 import terrastore.store.features.Update;
 import terrastore.store.features.Range;
 import static org.junit.Assert.*;
@@ -152,9 +153,20 @@ public class TerrastoreClientTest {
     }
 
     @Test
-    public void testDoRangeQuery() throws Exception {
+    public void testDoRangeQueryWithNoPredicate() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
         Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", "lexical-asc", 0, TestValue.class);
+        assertNotNull(map);
+        assertEquals(2, map.size());
+        List<TestValue> values = new ArrayList<TestValue>(map.values());
+        assertEquals(TEST_VALUE_2, values.get(0));
+        assertEquals(TEST_VALUE_3, values.get(1));
+    }
+
+    @Test
+    public void testDoRangeQueryWithPredicate() throws Exception {
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", "lexical-asc", "test:test", 0, TestValue.class);
         assertNotNull(map);
         assertEquals(2, map.size());
         List<TestValue> values = new ArrayList<TestValue>(map.values());
@@ -220,7 +232,9 @@ public class TerrastoreClientTest {
         expectLastCall().andStubThrow(new QueryOperationException(new ErrorMessage(404, "error")));
         queryService.getAllValues(bucket);
         expectLastCall().andStubReturn(values);
-        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc"));
+        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc", 0), new Predicate());
+        expectLastCall().andStubReturn(range);
+        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc", 0), new Predicate("test:test"));
         expectLastCall().andStubReturn(range);
 
         replay(updateService, queryService);
