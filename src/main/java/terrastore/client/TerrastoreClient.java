@@ -256,6 +256,32 @@ public class TerrastoreClient {
     }
 
     /**
+     * Execute a predicate-based query returning all key/value pairs whose value satisfies the given predicate.<br>
+     * Predicate expression must have the following form: "type:expression", where "type" is the predicate type (which must be configured on the server side),
+     * and "expression" is the actual conditional expression to evaluate.
+     *
+     * @param <T> Type of the objects to get (as contained in the given bucket).
+     * @param bucket The bucket name.
+     * @param predicate The predicate expression.
+     * @param type Type of the objects to get (as contained in the given bucket).
+     * @return A map of key/value pairs.
+     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
+     * @throws TerrastoreRequestException If Terrastore server returns a failure response.
+     */
+    public <T> Values<T> doPredicateQuery(String bucket, String predicate, Class<T> type) throws Exception, TerrastoreRequestException {
+        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("predicate").
+                queryParam("predicate", predicate).
+                build().toString();
+        ClientRequest request = requestFactory.createRequest(requestUri);
+        ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
+        if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+            return (Values<T>) response.getEntity(Values.class, type);
+        } else {
+            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+        }
+    }
+
+    /**
      * Execute an update on the value under the given key from the given bucket.<br>
      * The update operation is implemented as a server side function
      * with the given parameters map; the server side function must not last more that the given timeout (expressed in milliseconds): otherwise,

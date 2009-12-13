@@ -175,6 +175,20 @@ public class TerrastoreClientTest {
     }
 
     @Test
+    public void testDoPredicateQuery() throws Exception {
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        Map<String, TestValue> map = client.<TestValue>doPredicateQuery("bucket", "test:test", TestValue.class);
+        assertNotNull(map);
+        assertEquals(3, map.size());
+        assertTrue(map.containsKey("key1"));
+        assertTrue(map.containsKey("key2"));
+        assertTrue(map.containsKey("key3"));
+        assertTrue(map.containsValue(TEST_VALUE_1));
+        assertTrue(map.containsValue(TEST_VALUE_2));
+        assertTrue(map.containsValue(TEST_VALUE_3));
+    }
+
+    @Test
     public void testExecuteUpdate() throws Exception {
         Map<String, Object> parameters = new HashMap<String, Object>();
         String param1 = "param1";
@@ -232,10 +246,12 @@ public class TerrastoreClientTest {
         expectLastCall().andStubThrow(new QueryOperationException(new ErrorMessage(404, "error")));
         queryService.getAllValues(bucket);
         expectLastCall().andStubReturn(values);
-        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc", 0), new Predicate());
+        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc"), new Predicate(null), 0);
         expectLastCall().andStubReturn(range);
-        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc", 0), new Predicate("test:test"));
+        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc"), new Predicate("test:test"), 0);
         expectLastCall().andStubReturn(range);
+        queryService.doPredicateQuery(bucket, new Predicate("test:test"));
+        expectLastCall().andStubReturn(values);
 
         replay(updateService, queryService);
 
