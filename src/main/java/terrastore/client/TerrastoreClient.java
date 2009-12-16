@@ -188,38 +188,6 @@ public class TerrastoreClient {
     }
 
     /**
-     * Execute a range query on the given bucket, selecting all values whose key falls into the given range as determined
-     * by the given comparator (which must be configured on the server side).
-     *
-     * @param <T> Type of the objects to get (as contained in the given bucket).
-     * @param bucket The bucket name.
-     * @param startKey First key in range.
-     * @param endKey Last key in range (comprised).
-     * @param comparator The name of the comparator to use for determining if a key belongs to the range.
-     * @param timeToLive Number of milliseconds determining how fresh the retrieved data has to be; if set to 0, the query will be immediately computed
-     * on current data.
-     * @param type Type of the objects to get (as contained in the given bucket).
-     * @return A map of key/value pairs.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
-     * @throws TerrastoreRequestException If Terrastore server returns a failure response.
-     */
-    public <T> Values<T> doRangeQuery(String bucket, String startKey, String endKey, String comparator, long timeToLive, Class<T> type) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("range").
-                queryParam("startKey", startKey).
-                queryParam("endKey", endKey).
-                queryParam("comparator", comparator).
-                queryParam("timeToLive", timeToLive).
-                build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
-        if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            return (Values<T>) response.getEntity(Values.class, type);
-        } else {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
-        }
-    }
-
-    /**
      * Execute a range query on the given bucket, selecting all values whose key falls into the given range, as determined
      * by the given comparator (which must be configured on the server side), and which satisfy the given predicate expression.<br>
      * Predicate expression must have the following form: "type:expression", where "type" is the predicate type (which must be configured on the server side),
@@ -228,9 +196,10 @@ public class TerrastoreClient {
      * @param <T> Type of the objects to get (as contained in the given bucket).
      * @param bucket The bucket name.
      * @param startKey First key in range.
-     * @param endKey Last key in range (comprised).
+     * @param endKey Last key in range (inclusive); if null, the range will extend to the provided limit.
+     * @param limit Max number of result to retrieve (even if not reaching the end of the range).
      * @param comparator The name of the comparator to use for determining if a key belongs to the range.
-     * @param predicate The predicate expression.
+     * @param predicate The predicate expression; if null, no predicate will be evaluated.
      * @param timeToLive Number of milliseconds determining how fresh the retrieved data has to be; if set to 0, the query will be immediately computed
      * on current data.
      * @param type Type of the objects to get (as contained in the given bucket).
@@ -238,14 +207,19 @@ public class TerrastoreClient {
      * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> Values<T> doRangeQuery(String bucket, String startKey, String endKey, String comparator, String predicate, long timeToLive, Class<T> type) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("range").
+    public <T> Values<T> doRangeQuery(String bucket, String startKey, String endKey, int limit, String comparator, String predicate, long timeToLive, Class<T> type) throws Exception, TerrastoreRequestException {
+        UriBuilder builder = UriBuilder.fromUri(baseUrl).path(bucket).path("range").
                 queryParam("startKey", startKey).
-                queryParam("endKey", endKey).
+                queryParam("limit", limit).
                 queryParam("comparator", comparator).
-                queryParam("predicate", predicate).
-                queryParam("timeToLive", timeToLive).
-                build().toString();
+                queryParam("timeToLive", timeToLive);
+        if (endKey != null) {
+            builder.queryParam("endKey", endKey);
+        }
+        if (predicate != null) {
+            builder.queryParam("predicate", predicate);
+        }
+        String requestUri = builder.build().toString();
         ClientRequest request = requestFactory.createRequest(requestUri);
         ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
         if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {

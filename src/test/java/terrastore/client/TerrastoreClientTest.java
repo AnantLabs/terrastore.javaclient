@@ -155,7 +155,18 @@ public class TerrastoreClientTest {
     @Test
     public void testDoRangeQueryWithNoPredicate() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", "lexical-asc", 0, TestValue.class);
+        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", 0, "lexical-asc", null, 0, TestValue.class);
+        assertNotNull(map);
+        assertEquals(2, map.size());
+        List<TestValue> values = new ArrayList<TestValue>(map.values());
+        assertEquals(TEST_VALUE_2, values.get(0));
+        assertEquals(TEST_VALUE_3, values.get(1));
+    }
+
+    @Test
+    public void testDoRangeQueryWithNoEndKey() throws Exception {
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", null, 0, "lexical-asc", null, 0, TestValue.class);
         assertNotNull(map);
         assertEquals(2, map.size());
         List<TestValue> values = new ArrayList<TestValue>(map.values());
@@ -166,7 +177,7 @@ public class TerrastoreClientTest {
     @Test
     public void testDoRangeQueryWithPredicate() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", "lexical-asc", "test:test", 0, TestValue.class);
+        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", 0, "lexical-asc", "test:test", 0, TestValue.class);
         assertNotNull(map);
         assertEquals(2, map.size());
         List<TestValue> values = new ArrayList<TestValue>(map.values());
@@ -246,9 +257,11 @@ public class TerrastoreClientTest {
         expectLastCall().andStubThrow(new QueryOperationException(new ErrorMessage(404, "error")));
         queryService.getAllValues(bucket);
         expectLastCall().andStubReturn(values);
-        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc"), new Predicate(null), 0);
+        queryService.doRangeQuery(bucket, new Range(key2, key3, 0, "lexical-asc"), new Predicate(null), 0);
         expectLastCall().andStubReturn(range);
-        queryService.doRangeQuery(bucket, new Range(key2, key3, "lexical-asc"), new Predicate("test:test"), 0);
+        queryService.doRangeQuery(bucket, new Range(key2, key3, 0, "lexical-asc"), new Predicate("test:test"), 0);
+        expectLastCall().andStubReturn(range);
+        queryService.doRangeQuery(bucket, new Range(key2, null, 0, "lexical-asc"), new Predicate(null), 0);
         expectLastCall().andStubReturn(range);
         queryService.doPredicateQuery(bucket, new Predicate("test:test"));
         expectLastCall().andStubReturn(values);
