@@ -196,8 +196,8 @@ public class TerrastoreClient {
      * @param <T> Type of the objects to get (as contained in the given bucket).
      * @param bucket The bucket name.
      * @param startKey First key in range.
-     * @param endKey Last key in range (inclusive); if null, the range will extend to the provided limit.
-     * @param limit Max number of result to retrieve (even if not reaching the end of the range).
+     * @param endKey Last key in range (inclusive); if null, all elements starting from start key and up to the limit will be selected.
+     * @param limit Max number of elements to retrieve (even if not reaching the end of the range); if zero, all elements in range will be selected.
      * @param comparator The name of the comparator to use for determining if a key belongs to the range.
      * @param predicate The predicate expression; if null, no predicate will be evaluated.
      * @param timeToLive Number of milliseconds determining how fresh the retrieved data has to be; if set to 0, the query will be immediately computed
