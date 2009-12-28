@@ -50,7 +50,7 @@ public class TerrastoreClient {
      *
      * @param baseUrl The Terrastore server address (i.e. http://192.168.1.1:8080).
      */
-    public TerrastoreClient(String baseUrl) throws Exception {
+    public TerrastoreClient(String baseUrl) {
         this(baseUrl, new ArrayList<JsonObjectDescriptor>(0));
     }
 
@@ -62,33 +62,41 @@ public class TerrastoreClient {
      * @param descriptors A list of {@link JsonObjectDescriptor}s describing how to serialize
      * and deserialize object values.
      */
-    public TerrastoreClient(String baseUrl, List<? extends JsonObjectDescriptor> descriptors) throws Exception {
+    public TerrastoreClient(String baseUrl, List<? extends JsonObjectDescriptor> descriptors) {
         this.baseUrl = baseUrl;
-        //
-        ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
-        // Registration order matters: JsonObjectWriter must come last because writes all:
-        providerFactory.addMessageBodyWriter(new JsonParametersWriter());
-        providerFactory.addMessageBodyWriter(new JsonObjectWriter(descriptors));
-        // Registration order matters: JsonObjectReader must come last because reads all:
-        providerFactory.addMessageBodyReader(new JsonValuesReader(descriptors));
-        providerFactory.addMessageBodyReader(new JsonObjectReader(descriptors));
-        //
-        registerProviders(providerFactory);
+        try {
+            ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
+            // Registration order matters: JsonObjectWriter must come last because writes all:
+            providerFactory.addMessageBodyWriter(new JsonParametersWriter());
+            providerFactory.addMessageBodyWriter(new JsonObjectWriter(descriptors));
+            // Registration order matters: JsonObjectReader must come last because reads all:
+            providerFactory.addMessageBodyReader(new JsonValuesReader(descriptors));
+            providerFactory.addMessageBodyReader(new JsonObjectReader(descriptors));
+            //
+            registerProviders(providerFactory);
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex.getMessage(), ex);
+        }
     }
 
     /**
      * Add a bucket with the given name.
      *
      * @param bucket The bucket name.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public void addBucket(String bucket) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse response = request.accept(JSON_CONTENT_TYPE).put();
-        if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public void addBucket(String bucket) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.accept(JSON_CONTENT_TYPE).put();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -96,15 +104,20 @@ public class TerrastoreClient {
      * Remove the bucket with the given name.
      *
      * @param bucket The bucket name.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public void removeBucket(String bucket) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse response = request.accept(JSON_CONTENT_TYPE).delete();
-        if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public void removeBucket(String bucket) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.accept(JSON_CONTENT_TYPE).delete();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -115,15 +128,20 @@ public class TerrastoreClient {
      * @param bucket The bucket name.
      * @param key The object key.
      * @param value The object to put.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> void putValue(String bucket, String key, T value) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse<T> response = request.body(JSON_CONTENT_TYPE, value).put();
-        if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public <T> void putValue(String bucket, String key, T value) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse<T> response = request.body(JSON_CONTENT_TYPE, value).put();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -132,15 +150,20 @@ public class TerrastoreClient {
      *
      * @param bucket The bucket name.
      * @param key The object key.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public void removeValue(String bucket, String key) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse response = request.accept(JSON_CONTENT_TYPE).delete();
-        if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public void removeValue(String bucket, String key) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.accept(JSON_CONTENT_TYPE).delete();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -152,17 +175,22 @@ public class TerrastoreClient {
      * @param key The object key.
      * @param type type of the object to get.
      * @return The value.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> T getValue(String bucket, String key, Class<T> type) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
-        if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            return response.getEntity(type);
-        } else {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public <T> T getValue(String bucket, String key, Class<T> type) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(type);
+            } else {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -173,17 +201,22 @@ public class TerrastoreClient {
      * @param bucket The bucket name.
      * @param type Type of the objects to get (as contained in the given bucket).
      * @return A map of key/value pairs.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> Values<T> getAllValues(String bucket, Class<T> type) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
-        if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            return (Values<T>) response.getEntity(Values.class, type);
-        } else {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public <T> Values<T> getAllValues(String bucket, Class<T> type) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return (Values<T>) response.getEntity(Values.class, type);
+            } else {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -204,28 +237,33 @@ public class TerrastoreClient {
      * on current data.
      * @param type Type of the objects to get (as contained in the given bucket).
      * @return A map of key/value pairs.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> Values<T> doRangeQuery(String bucket, String startKey, String endKey, int limit, String comparator, String predicate, long timeToLive, Class<T> type) throws Exception, TerrastoreRequestException {
-        UriBuilder builder = UriBuilder.fromUri(baseUrl).path(bucket).path("range").
-                queryParam("startKey", startKey).
-                queryParam("limit", limit).
-                queryParam("comparator", comparator).
-                queryParam("timeToLive", timeToLive);
-        if (endKey != null) {
-            builder.queryParam("endKey", endKey);
-        }
-        if (predicate != null) {
-            builder.queryParam("predicate", predicate);
-        }
-        String requestUri = builder.build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
-        if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            return (Values<T>) response.getEntity(Values.class, type);
-        } else {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public <T> Values<T> doRangeQuery(String bucket, String startKey, String endKey, int limit, String comparator, String predicate, long timeToLive, Class<T> type) throws TerrastoreRequestException {
+        try {
+            UriBuilder builder = UriBuilder.fromUri(baseUrl).path(bucket).path("range").
+                    queryParam("startKey", startKey).
+                    queryParam("limit", limit).
+                    queryParam("comparator", comparator).
+                    queryParam("timeToLive", timeToLive);
+            if (endKey != null) {
+                builder.queryParam("endKey", endKey);
+            }
+            if (predicate != null) {
+                builder.queryParam("predicate", predicate);
+            }
+            String requestUri = builder.build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return (Values<T>) response.getEntity(Values.class, type);
+            } else {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -239,19 +277,24 @@ public class TerrastoreClient {
      * @param predicate The predicate expression.
      * @param type Type of the objects to get (as contained in the given bucket).
      * @return A map of key/value pairs.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> Values<T> doPredicateQuery(String bucket, String predicate, Class<T> type) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("predicate").
-                queryParam("predicate", predicate).
-                build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
-        if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            return (Values<T>) response.getEntity(Values.class, type);
-        } else {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public <T> Values<T> doPredicateQuery(String bucket, String predicate, Class<T> type) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("predicate").
+                    queryParam("predicate", predicate).
+                    build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return (Values<T>) response.getEntity(Values.class, type);
+            } else {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
@@ -268,16 +311,21 @@ public class TerrastoreClient {
      * @param function The server side function to invoke for actually performing the update.
      * @param timeout The max number of milliseconds for the update operation to complete successfully.
      * @param parameters The function parameters as a json associative array.
-     * @throws Exception If something wrong happens while connecting/interacting with the Terrastore server.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public void executeUpdate(String bucket, String key, String function, long timeout, Parameters parameters) throws Exception, TerrastoreRequestException {
-        String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).path("update").queryParam("function", function).queryParam("timeout", timeout).
-                build().toString();
-        ClientRequest request = requestFactory.createRequest(requestUri);
-        ClientResponse response = request.body(JSON_CONTENT_TYPE, parameters).post();
-        if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-            throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+    public void executeUpdate(String bucket, String key, String function, long timeout, Parameters parameters) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path(key).path("update").queryParam("function", function).queryParam("timeout", timeout).
+                    build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, parameters).post();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 }
