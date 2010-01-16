@@ -16,78 +16,20 @@
 package terrastore.client;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import org.jboss.resteasy.plugins.server.tjws.TJWSEmbeddedJaxrsServer;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import terrastore.common.ErrorMessage;
-import terrastore.server.Server;
-import terrastore.server.impl.JsonHttpServer;
-import terrastore.server.impl.support.JsonErrorMessageProvider;
-import terrastore.server.impl.support.JsonParametersMapProvider;
-import terrastore.server.impl.support.JsonServerOperationExceptionMapper;
-import terrastore.server.impl.support.JsonValueProvider;
-import terrastore.server.impl.support.JsonValuesMapProvider;
-import terrastore.service.QueryOperationException;
-import terrastore.service.QueryService;
-import terrastore.service.UpdateOperationException;
-import terrastore.service.UpdateService;
-import terrastore.service.comparators.LexicographicalComparator;
-import terrastore.store.Value;
-import terrastore.store.features.Predicate;
-import terrastore.store.features.Update;
-import terrastore.store.features.Range;
 import static org.junit.Assert.*;
-import static org.easymock.classextension.EasyMock.*;
 
 /**
  * @author Sergio Bossa
  */
 public class TerrastoreClientTest {
 
-    private static final int STOP_WAIT_TIME = 5000;
-    private static final String JSON_VALUE_1 = "{\"value\":\"value_1\"}";
-    private static final String JSON_VALUE_2 = "{\"value\":\"value_2\"}";
-    private static final String JSON_VALUE_3 = "{\"value\":\"value_3\"}";
     private static final TestValue TEST_VALUE_1 = new TestValue("value_1");
     private static final TestValue TEST_VALUE_2 = new TestValue("value_2");
     private static final TestValue TEST_VALUE_3 = new TestValue("value_3");
-    private static TJWSEmbeddedJaxrsServer server;
-
-    @BeforeClass
-    public static void onSetUp() throws Exception {
-        startWebServerWith(setupTerrastoreServerMock());
-    }
-
-    @AfterClass
-    public static void onTearDown() throws Exception {
-        server.stop();
-        Thread.sleep(STOP_WAIT_TIME);
-    }
-
-    @Test
-    public void testAddBucket() throws Exception {
-        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.addBucket("bucket");
-    }
-
-    @Test
-    public void testRemoveBucket() throws Exception {
-        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.removeBucket("bucket");
-    }
-
-    @Test(expected = TerrastoreRequestException.class)
-    public void testRemoveBucketNotFoundThrowsException() throws Exception {
-        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.removeBucket("error");
-    }
 
     @Test
     public void testAddThenRemoveBucket() throws Exception {
@@ -96,51 +38,69 @@ public class TerrastoreClientTest {
         client.removeBucket("bucket");
     }
 
-    @Test
-    public void testPutValue() throws Exception {
+    @Test(expected = TerrastoreRequestException.class)
+    public void testRemoveBucketNotFoundThrowsException() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.removeBucket("not_found");
     }
 
     @Test
-    public void testRemoveValue() throws Exception {
+    public void testPutAndRemoveValue() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
         client.removeValue("bucket", "key1");
+        //
+        client.removeBucket("bucket");
     }
 
     @Test(expected = TerrastoreRequestException.class)
     public void testRemoveValueNotFoundThrowsException() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.removeValue("bucket", "error");
+        try {
+            client.addBucket("bucket");
+            //
+            client.removeValue("bucket", "error");
+        } finally {
+            client.removeBucket("bucket");
+        }
     }
 
     @Test
-    public void testGetValue() throws Exception {
+    public void testPutAndGetValue() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
         TestValue value = client.<TestValue>getValue("bucket", "key1", TestValue.class);
         assertNotNull(value);
         assertEquals(TEST_VALUE_1, value);
+        //
+        client.removeBucket("bucket");
     }
 
     @Test(expected = TerrastoreRequestException.class)
     public void testGetValueNotFoundThrowsException() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.<TestValue>getValue("bucket", "error", TestValue.class);
-    }
-
-    @Test
-    public void testPutThenGetThenRemoveValue() throws Exception {
-        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
-        TestValue value = client.<TestValue>getValue("bucket", "key1", TestValue.class);
-        assertNotNull(value);
-        assertEquals(TEST_VALUE_1, value);
-        client.removeValue("bucket", "key1");
+        try {
+            client.addBucket("bucket");
+            //
+            client.<TestValue>getValue("bucket", "not_found", TestValue.class);
+        } finally {
+            client.removeBucket("bucket");
+        }
     }
 
     @Test
     public void testGetAllValues() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
+        client.<TestValue>putValue("bucket", "key3", TEST_VALUE_3);
+        //
         Map<String, TestValue> map = client.<TestValue>getAllValues("bucket", TestValue.class);
         assertNotNull(map);
         assertEquals(3, map.size());
@@ -150,45 +110,77 @@ public class TerrastoreClientTest {
         assertTrue(map.containsValue(TEST_VALUE_1));
         assertTrue(map.containsValue(TEST_VALUE_2));
         assertTrue(map.containsValue(TEST_VALUE_3));
+        //
+        client.removeBucket("bucket");
     }
 
     @Test
     public void testDoRangeQueryWithNoPredicate() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
+        client.<TestValue>putValue("bucket", "key3", TEST_VALUE_3);
+        //
         Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", 0, "lexical-asc", null, 0, TestValue.class);
         assertNotNull(map);
         assertEquals(2, map.size());
         List<TestValue> values = new ArrayList<TestValue>(map.values());
         assertEquals(TEST_VALUE_2, values.get(0));
         assertEquals(TEST_VALUE_3, values.get(1));
+        //
+        client.removeBucket("bucket");
     }
 
     @Test
     public void testDoRangeQueryWithNoEndKey() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
+        client.<TestValue>putValue("bucket", "key3", TEST_VALUE_3);
+        //
         Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", null, 0, "lexical-asc", null, 0, TestValue.class);
         assertNotNull(map);
         assertEquals(2, map.size());
         List<TestValue> values = new ArrayList<TestValue>(map.values());
         assertEquals(TEST_VALUE_2, values.get(0));
         assertEquals(TEST_VALUE_3, values.get(1));
+        //
+        client.removeBucket("bucket");
     }
 
     @Test
     public void testDoRangeQueryWithPredicate() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", 0, "lexical-asc", "test:test", 0, TestValue.class);
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
+        client.<TestValue>putValue("bucket", "key3", TEST_VALUE_3);
+        //
+        Map<String, TestValue> map = client.<TestValue>doRangeQuery("bucket", "key2", "key3", 0, "lexical-asc", "jxpath:/value", 0, TestValue.class);
         assertNotNull(map);
         assertEquals(2, map.size());
         List<TestValue> values = new ArrayList<TestValue>(map.values());
         assertEquals(TEST_VALUE_2, values.get(0));
         assertEquals(TEST_VALUE_3, values.get(1));
+        //
+        client.removeBucket("bucket");
     }
 
     @Test
     public void testDoPredicateQuery() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        Map<String, TestValue> map = client.<TestValue>doPredicateQuery("bucket", "test:test", TestValue.class);
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
+        client.<TestValue>putValue("bucket", "key3", TEST_VALUE_3);
+        //
+        Map<String, TestValue> map = client.<TestValue>doPredicateQuery("bucket", "jxpath:/value", TestValue.class);
         assertNotNull(map);
         assertEquals(3, map.size());
         assertTrue(map.containsKey("key1"));
@@ -197,6 +189,8 @@ public class TerrastoreClientTest {
         assertTrue(map.containsValue(TEST_VALUE_1));
         assertTrue(map.containsValue(TEST_VALUE_2));
         assertTrue(map.containsValue(TEST_VALUE_3));
+        //
+        client.removeBucket("bucket");
     }
 
     @Test
@@ -205,84 +199,15 @@ public class TerrastoreClientTest {
         String param1 = "param1";
         String value1 = "value1";
         parameters.put(param1, value1);
-
+        //
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
-        client.executeUpdate("bucket", "key1", "update", 1000, new Parameters(parameters));
-    }
-
-    private static Server setupTerrastoreServerMock() throws Exception {
-        String bucket = "bucket";
-        String key1 = "key1";
-        String key2 = "key2";
-        String key3 = "key3";
-        String notFound = "error";
-        Map<String, Value> values = new HashMap<String, Value>();
-        values.put(key1, new Value(JSON_VALUE_1.getBytes()));
-        values.put(key2, new Value(JSON_VALUE_2.getBytes()));
-        values.put(key3, new Value(JSON_VALUE_3.getBytes()));
-        SortedMap<String, Value> range = new TreeMap<String, Value>(new LexicographicalComparator(true));
-        range.put(key2, new Value(JSON_VALUE_2.getBytes()));
-        range.put(key3, new Value(JSON_VALUE_3.getBytes()));
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        String param1 = "param1";
-        String value1 = "value1";
-        parameters.put(param1, value1);
-        UpdateService updateService = createNiceMock(UpdateService.class);
-        makeThreadSafe(updateService, true);
-        QueryService queryService = createNiceMock(QueryService.class);
-        makeThreadSafe(queryService, true);
-
-        updateService.addBucket(eq(bucket));
-        expectLastCall().asStub();
-        updateService.removeBucket(eq(bucket));
-        expectLastCall().asStub();
-        updateService.removeBucket(eq(notFound));
-        expectLastCall().andStubThrow(new UpdateOperationException(new ErrorMessage(404, "error")));
-        updateService.putValue(eq(bucket), eq(key1), eq(new Value(JSON_VALUE_1.getBytes())));
-        expectLastCall().asStub();
-        updateService.removeValue(eq(bucket), eq(key1));
-        expectLastCall().asStub();
-        updateService.removeValue(eq(bucket), eq(notFound));
-        expectLastCall().andStubThrow(new UpdateOperationException(new ErrorMessage(404, "error")));
-        updateService.executeUpdate(eq(bucket), eq(key1), eq(new Update("update", 1000, parameters)));
-        expectLastCall().asStub();
-
-        queryService.getValue(bucket, key1);
-        expectLastCall().andStubReturn(new Value(JSON_VALUE_1.getBytes()));
-        queryService.getValue(bucket, key2);
-        expectLastCall().andStubReturn(new Value(JSON_VALUE_2.getBytes()));
-        queryService.getValue(bucket, key3);
-        expectLastCall().andStubReturn(new Value(JSON_VALUE_3.getBytes()));
-        queryService.getValue(bucket, notFound);
-        expectLastCall().andStubThrow(new QueryOperationException(new ErrorMessage(404, "error")));
-        queryService.getAllValues(bucket);
-        expectLastCall().andStubReturn(values);
-        queryService.doRangeQuery(bucket, new Range(key2, key3, 0, "lexical-asc"), new Predicate(null), 0);
-        expectLastCall().andStubReturn(range);
-        queryService.doRangeQuery(bucket, new Range(key2, key3, 0, "lexical-asc"), new Predicate("test:test"), 0);
-        expectLastCall().andStubReturn(range);
-        queryService.doRangeQuery(bucket, new Range(key2, null, 0, "lexical-asc"), new Predicate(null), 0);
-        expectLastCall().andStubReturn(range);
-        queryService.doPredicateQuery(bucket, new Predicate("test:test"));
-        expectLastCall().andStubReturn(values);
-
-        replay(updateService, queryService);
-
-        return new JsonHttpServer(updateService, queryService);
-    }
-
-    private static void startWebServerWith(Server terrastoreServer) {
-        server = new TJWSEmbeddedJaxrsServer();
-        server.getDeployment().setRegisterBuiltin(true);
-        server.getDeployment().setProviderClasses(Arrays.asList(
-                JsonErrorMessageProvider.class.getName(),
-                JsonValuesMapProvider.class.getName(),
-                JsonParametersMapProvider.class.getName(),
-                JsonValueProvider.class.getName(),
-                JsonServerOperationExceptionMapper.class.getName()));
-        server.getDeployment().setResources(Arrays.<Object>asList(terrastoreServer));
-        server.setPort(8080);
-        server.start();
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        //
+        client.executeUpdate("bucket", "key1", "replace", 1000, new Parameters(parameters));
+        //
+        client.removeBucket("bucket");
     }
 
     public static class TestValue {

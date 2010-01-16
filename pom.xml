@@ -4,7 +4,7 @@
     <groupId>terrastore</groupId>
     <artifactId>terrastore-javaclient</artifactId>
     <packaging>jar</packaging>
-    <version>0.4-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <name>terrastore-javaclient</name>
     <scm>
         <connection>scm:hg:https://javaclient.terrastore.googlecode.com/hg</connection>
@@ -70,18 +70,6 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>0.9.9</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>terrastore</groupId>
-            <artifactId>terrastore</artifactId>
-            <version>0.3.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>tjws</groupId>
-            <artifactId>webserver</artifactId>
-            <version>1.3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
