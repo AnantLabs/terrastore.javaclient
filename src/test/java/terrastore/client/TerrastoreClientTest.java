@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -42,6 +43,21 @@ public class TerrastoreClientTest {
     public void testRemoveBucketNotFoundThrowsException() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
         client.removeBucket("not_found");
+    }
+
+    @Test
+    public void testAddThenGetBuckets() throws Exception {
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        client.addBucket("bucket1");
+        client.addBucket("bucket2");
+        //
+        Set<String> buckets = client.getBuckets();
+        assertEquals(2, buckets.size());
+        assertTrue(buckets.contains("bucket1"));
+        assertTrue(buckets.contains("bucket2"));
+        //
+        client.removeBucket("bucket1");
+        client.removeBucket("bucket2");
     }
 
     @Test

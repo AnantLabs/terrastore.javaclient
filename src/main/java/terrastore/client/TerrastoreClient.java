@@ -17,6 +17,7 @@ package terrastore.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import org.jboss.resteasy.client.ClientRequest;
@@ -25,6 +26,7 @@ import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import terrastore.client.mapping.JsonBucketsReader;
 import terrastore.client.mapping.JsonValuesReader;
 import terrastore.client.mapping.JsonObjectReader;
 import terrastore.client.mapping.JsonObjectWriter;
@@ -71,11 +73,35 @@ public class TerrastoreClient {
             providerFactory.addMessageBodyWriter(new JsonObjectWriter(descriptors));
             // Registration order matters: JsonObjectReader must come last because reads all:
             providerFactory.addMessageBodyReader(new JsonValuesReader(descriptors));
+            providerFactory.addMessageBodyReader(new JsonBucketsReader());
             providerFactory.addMessageBodyReader(new JsonObjectReader(descriptors));
             //
             registerProviders(providerFactory);
         } catch (Exception ex) {
             throw new IllegalStateException(ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Get the name of all buckets.
+     *
+     * @return A set containing the names of all buckets.
+     * @throws TerrastoreRequestException If Terrastore server returns a failure response.
+     */
+    public Set<String> getBuckets() throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.accept(JSON_CONTENT_TYPE).get();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return (Set<String>) response.getEntity(Set.class);
+            } else {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
 
