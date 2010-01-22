@@ -109,7 +109,7 @@ public class TerrastoreClientTest {
     }
 
     @Test
-    public void testGetAllValues() throws Exception {
+    public void testGetAllValuesWithNoLimit() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
         client.addBucket("bucket");
         //
@@ -117,7 +117,7 @@ public class TerrastoreClientTest {
         client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
         client.<TestValue>putValue("bucket", "key3", TEST_VALUE_3);
         //
-        Map<String, TestValue> map = client.<TestValue>getAllValues("bucket", TestValue.class);
+        Map<String, TestValue> map = client.<TestValue>getAllValues("bucket", 0, TestValue.class);
         assertNotNull(map);
         assertEquals(3, map.size());
         assertTrue(map.containsKey("key1"));
@@ -126,6 +126,23 @@ public class TerrastoreClientTest {
         assertTrue(map.containsValue(TEST_VALUE_1));
         assertTrue(map.containsValue(TEST_VALUE_2));
         assertTrue(map.containsValue(TEST_VALUE_3));
+        //
+        client.removeBucket("bucket");
+    }
+
+    @Test
+    public void testGetAllValuesWithLimit() throws Exception {
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        client.addBucket("bucket");
+        //
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
+        //
+        Map<String, TestValue> map = client.<TestValue>getAllValues("bucket", 1, TestValue.class);
+        assertNotNull(map);
+        assertEquals(1, map.size());
+        assertTrue(map.containsKey("key1") || map.containsKey("key2"));
+        assertTrue(map.containsValue(TEST_VALUE_1) || map.containsValue(TEST_VALUE_2));
         //
         client.removeBucket("bucket");
     }

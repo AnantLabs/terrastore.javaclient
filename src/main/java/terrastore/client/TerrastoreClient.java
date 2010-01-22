@@ -221,17 +221,20 @@ public class TerrastoreClient {
     }
 
     /**
-     * Get all values from the given bucket.
+     * Get all values from the given bucket, in random order.<br>
+     * It is strongly suggested to set a reasonable limit: returning all values may be a very expensive
+     * operation.
      *
      * @param <T> Type of the objects to get (as contained in the given bucket).
      * @param bucket The bucket name.
+     * @param limit Max number of elements to retrieve; if zero, all values will be returned.
      * @param type Type of the objects to get (as contained in the given bucket).
      * @return A map of key/value pairs.
      * @throws TerrastoreRequestException If Terrastore server returns a failure response.
      */
-    public <T> Values<T> getAllValues(String bucket, Class<T> type) throws TerrastoreRequestException {
+    public <T> Values<T> getAllValues(String bucket, int limit, Class<T> type) throws TerrastoreRequestException {
         try {
-            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).build().toString();
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).queryParam("limit", limit).build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
