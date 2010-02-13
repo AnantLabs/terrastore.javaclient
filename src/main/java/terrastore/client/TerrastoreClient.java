@@ -357,4 +357,57 @@ public class TerrastoreClient {
             throw new TerrastoreCommunicationException(ex.getMessage(), ex);
         }
     }
+
+    /**
+     * Export all key/value entries contained into the given bucket to a file located on the Terrastore node receiveing the export request.<br>
+     * In order to perform a backup export, you need to pass along a shared secret key, in order to be sure not to perform
+     * an export operation by accident.
+     *
+     * @param bucket The name of the bucket whose entries must be exported.
+     * @param destination The name of the backup file.
+     * @param secret The shared secret key.
+     * @throws TerrastoreRequestException If Terrastore server returns a failure response.
+     */
+    public void exportBackup(String bucket, String destination, String secret) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("export").queryParam("destination", destination).queryParam("secret", secret).
+                    build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Import a backup of key/value entries into the given bucket, from a file located on the Terrastore node receiveing the import request.<br>
+     * In order to perform a backup import, you need to pass along a shared secret key, in order to be sure not to perform
+     * an import operation by accident.<br>
+     * The import operation overwrites duplicated keys, but does not delete missed keys.
+     *
+     * @param bucket The name of the bucket into which importing backup entries.
+     * @param source The name of the backup file.
+     * @param secret The shared secret key.
+     * @throws TerrastoreRequestException If Terrastore server returns a failure response.
+     */
+    public void importBackup(String bucket, String source, String secret) throws TerrastoreRequestException {
+        try {
+            String requestUri = UriBuilder.fromUri(baseUrl).path(bucket).path("import").queryParam("source", source).queryParam("secret", secret).
+                    build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreRequestException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TerrastoreCommunicationException(ex.getMessage(), ex);
+        }
+    }
 }

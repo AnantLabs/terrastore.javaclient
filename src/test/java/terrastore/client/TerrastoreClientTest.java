@@ -243,6 +243,27 @@ public class TerrastoreClientTest {
         client.removeBucket("bucket");
     }
 
+    @Test
+    public void testExportImportBackup() throws Exception {
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080");
+        //
+        client.addBucket("bucket");
+        client.<TestValue>putValue("bucket", "key1", TEST_VALUE_1);
+        client.<TestValue>putValue("bucket", "key2", TEST_VALUE_2);
+        client.<TestValue>putValue("bucket", "key3", TEST_VALUE_3);
+        assertEquals(3, client.getAllValues("bucket", 10, TestValue.class).size());
+        //
+        client.exportBackup("bucket", "test.bak", "SECRET-KEY");
+        //
+        client.removeBucket("bucket");
+        client.addBucket("bucket");
+        //
+        client.importBackup("bucket", "test.bak", "SECRET-KEY");
+        assertEquals(3, client.getAllValues("bucket", 10, TestValue.class).size());
+        //
+        client.removeBucket("bucket");
+    }
+
     public static class TestValue {
 
         private String value;
