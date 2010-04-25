@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package terrastore.client;
+package terrastore.client.legacy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,13 @@ import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import terrastore.client.Parameters;
+import terrastore.client.TerrastoreCommunicationException;
+import terrastore.client.TerrastoreRequestException;
+import terrastore.client.Values;
 import terrastore.client.mapping.JsonBucketsReader;
+import terrastore.client.mapping.JsonObjectDescriptor;
 import terrastore.client.mapping.JsonValuesReader;
 import terrastore.client.mapping.JsonObjectReader;
 import terrastore.client.mapping.JsonObjectWriter;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2009 Sergio Bossa (sergio.bossa@gmail.com)
+ * Copyright 2009 - 2010 Sergio Bossa (sergio.bossa@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,31 +13,33 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package terrastore.client;
+package terrastore.client.mapping;
 
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * @author Sergio Bossa
  */
-public class Values<T> extends AbstractMap<String, T> {
+public class Buckets extends AbstractCollection<String> implements Serializable {
 
-    private final Map<String, T> values;
+    private static final long serialVersionUID = 12345678901L;
 
-    public Values(Map<String, T> values) {
-        this.values = values;
+    private final Collection<String> buckets;
+
+    public Buckets(Collection<String> buckets) {
+        this.buckets = buckets;
     }
 
     @Override
-    public T get(Object key) {
-        return values.get(key);
+    public Iterator<String> iterator() {
+        return buckets.iterator();
     }
 
     @Override
-    public Set<Entry<String, T>> entrySet() {
-        return values.entrySet();
+    public int size() {
+        return buckets.size();
     }
 }

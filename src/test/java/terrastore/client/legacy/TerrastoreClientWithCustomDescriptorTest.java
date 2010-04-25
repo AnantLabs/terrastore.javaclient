@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package terrastore.client;
+package terrastore.client.legacy;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,6 +25,9 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.junit.Test;
+
+import terrastore.client.legacy.TerrastoreClient;
+import terrastore.client.mapping.JsonObjectDescriptor;
 import static org.junit.Assert.*;
 
 /**

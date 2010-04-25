@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package terrastore.client;
+package terrastore.client.legacy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.Test;
+
+import terrastore.client.Parameters;
+import terrastore.client.TerrastoreRequestException;
+import terrastore.client.legacy.TerrastoreClient;
 import static org.junit.Assert.*;
 
 /**
