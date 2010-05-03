@@ -28,13 +28,16 @@ import terrastore.client.mapping.JsonObjectDescriptor;
  */
 public interface ConnectionFactory {
 
-	/**
-	 * Establishes a connection to a Terrastore server residing at the specified host/url.
-	 * 
-	 * @param serverHost The host/url of the server to connect to.
-	 * @return A connection
-	 * @throws TerrastoreConnectionException 
-	 */
-	Connection makeConnection(String serverHost, List<JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException;
+    /**
+     * Establishes a connection to a Terrastore server residing at the specified
+     * host/url.
+     * 
+     * @param serverHost The host/url of the server to connect to.
+     * @return A connection
+     * @throws TerrastoreConnectionException
+     */
+    Connection makeConnection(String serverHost,
+            List<JsonObjectDescriptor<?>> descriptors)
+            throws TerrastoreConnectionException;
 
 }

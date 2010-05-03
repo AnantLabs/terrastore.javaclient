@@ -17,22 +17,23 @@ package terrastore.client;
 
 /**
  * Checked exception thrown when Terrastore server returns a failure response,
- * providing the HTTP response status code and (optional) response body entity.
- * <br/><br/>
- * This exception is checked because users of the API should catch it and get more
- * information about the failure by inspecting the status code and response entity.
- *
+ * providing the HTTP response status code and (optional) response body entity. <br/>
+ * <br/>
+ * This exception is checked because users of the API should catch it and get
+ * more information about the failure by inspecting the status code and response
+ * entity.
+ * 
  * @author Sergio Bossa
  */
 public class TerrastoreRequestException extends TerrastoreClientException {
 
-	private static final long serialVersionUID = 5783498742315816361L;
+    private static final long serialVersionUID = 5783498742315816361L;
 
-	private final int status;
+    private final int status;
     private final String entity;
 
     public TerrastoreRequestException(int status, String entity) {
-    	super();
+        super();
         this.status = status;
         this.entity = entity;
     }

@@ -19,9 +19,9 @@ package terrastore.client.connection;
 import terrastore.client.TerrastoreClientException;
 
 /**
- * Checked exception that is thrown to signify that a problem occurred while establishing
- * a {@link Connection} to a Terrastore server instance, or that a problem has 
- * occured with an existing {@link Connection} instance.
+ * Checked exception that is thrown to signify that a problem occurred while
+ * establishing a {@link Connection} to a Terrastore server instance, or that a
+ * problem has occured with an existing {@link Connection} instance.
  * 
  * @author Sven Johansson
  * @date 24 apr 2010
@@ -29,36 +29,39 @@ import terrastore.client.TerrastoreClientException;
  */
 public class TerrastoreConnectionException extends TerrastoreClientException {
 
-	private static final long serialVersionUID = -671123602089781186L;
+    private static final long serialVersionUID = -671123602089781186L;
 
-	/**
-	 * The server address to which a {@link Connection} could not be established. 
-	 */
-	private String serverHost;
-	
-	/**
-	 * Constructs an exception that siginifies that a {@link Connection} could not be
-	 * established to a Terrastore server presumably residing at the location specified
-	 * by the <code>serverHost</code> address.
-	 * 
-	 * @param message The failure message.
-	 * @param serverHost The host to which a connection could not be established.
-	 */
-	public TerrastoreConnectionException(String message, String serverHost) {
-		super(message);
-		this.serverHost = serverHost;
-	}
+    /**
+     * The server address to which a {@link Connection} could not be
+     * established.
+     */
+    private String serverHost;
 
-	public TerrastoreConnectionException(String message, String serverHost, Throwable cause) {
-		super(message, cause);
-		this.serverHost = serverHost;
-	}
+    /**
+     * Constructs an exception that siginifies that a {@link Connection} could
+     * not be established to a Terrastore server presumably residing at the
+     * location specified by the <code>serverHost</code> address.
+     * 
+     * @param message The failure message.
+     * @param serverHost The host to which a connection could not be
+     *            established.
+     */
+    public TerrastoreConnectionException(String message, String serverHost) {
+        super(message);
+        this.serverHost = serverHost;
+    }
 
-	/**
-	 * @return The server host to which a connection could not be established.
-	 */
-	public String getServerHost() {
-		return serverHost;
-	}
-	
+    public TerrastoreConnectionException(String message, String serverHost,
+            Throwable cause) {
+        super(message, cause);
+        this.serverHost = serverHost;
+    }
+
+    /**
+     * @return The server host to which a connection could not be established.
+     */
+    public String getServerHost() {
+        return serverHost;
+    }
+
 }

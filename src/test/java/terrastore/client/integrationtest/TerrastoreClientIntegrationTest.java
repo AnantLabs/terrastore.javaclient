@@ -58,7 +58,7 @@ public class TerrastoreClientIntegrationTest {
 	}
 	
 	@Test
-    public void testRemoveNonExistantBucket() throws Exception {
+	public void testRemoveNonExistantBucket() throws Exception {
 		client.bucket("not_found").remove();
 	}
 	
@@ -172,7 +172,7 @@ public class TerrastoreClientIntegrationTest {
     	bucket.key("key2").put(TEST_VALUE_2);
     	bucket.key("key3").put(TEST_VALUE_3);
     	
-    	Map<String, TestValue> result = bucket.rangeQuery().start("key2").end("key3").result(TestValue.class);
+    	Map<String, TestValue> result = bucket.range().from("key2").to("key3").get(TestValue.class);
     	
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -192,7 +192,7 @@ public class TerrastoreClientIntegrationTest {
     	bucket.key("key2").put(TEST_VALUE_2);
     	bucket.key("key3").put(TEST_VALUE_3);
     	
-    	Map<String, TestValue> map = bucket.rangeQuery().start("key2").result(TestValue.class);
+    	Map<String, TestValue> map = bucket.range().from("key2").get(TestValue.class);
     	
         assertNotNull(map);
         assertEquals(2, map.size());
@@ -212,11 +212,11 @@ public class TerrastoreClientIntegrationTest {
     	bucket.key("key2").put(TEST_VALUE_2);
     	bucket.key("key3").put(TEST_VALUE_3);
     	
-    	Map<String, TestValue> result = bucket.rangeQuery("lexical-asc")
-    		.start("key2")
-    		.end("key3")
-    		.predicate("jxpath:/value")
-    		.result(TestValue.class);
+    	Map<String, TestValue> result = bucket.range("lexical-asc")
+    		.from("key2")
+    		.to("key3")
+    		.conditionally("jxpath:/value")
+    		.get(TestValue.class);
     	
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -236,7 +236,7 @@ public class TerrastoreClientIntegrationTest {
     	bucket.key("key2").put(TEST_VALUE_2);
     	bucket.key("key3").put(TEST_VALUE_3);
     	
-    	Map<String, TestValue> result = bucket.predicateQuery("jxpath:/value").result(TestValue.class);
+    	Map<String, TestValue> result = bucket.conditional("jxpath:/value").get(TestValue.class);
     	
 		assertNotNull(result);
 		assertEquals(3, result.size());
@@ -258,67 +258,67 @@ public class TerrastoreClientIntegrationTest {
         parameters.put(param1, value1);
     	
     	client.bucket("bucket").add();
-    	KeyOperation key = client.bucket("bucket").key("key1");
-    	key.put(TEST_VALUE_1);
-    	
-    	key.update().timeOut(1000L).parameters(parameters).execute();
-    	
-    	client.bucket("bucket").remove();
+        KeyOperation key = client.bucket("bucket").key("key1");
+        key.put(TEST_VALUE_1);
+        
+        key.update().timeOut(1000L).parameters(parameters).execute();
+        
+        client.bucket("bucket").remove();
     }
     
     @Test
     public void testExportImportBackup() throws Exception {
-    	BucketOperation bucket = client.bucket("bucket");
-    	bucket.add();
-    	
-    	bucket.key("key1").put(TEST_VALUE_1);
-    	bucket.key("key2").put(TEST_VALUE_2);
-    	bucket.key("key3").put(TEST_VALUE_3);
+        BucketOperation bucket = client.bucket("bucket");
+        bucket.add();
+        
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key2").put(TEST_VALUE_2);
+        bucket.key("key3").put(TEST_VALUE_3);
 
-    	assertEquals(3, bucket.get(TestValue.class).size());
-    	
-    	bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeExport();
+        assertEquals(3, bucket.get(TestValue.class).size());
+        
+        bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeExport();
 
-    	bucket.remove();
-    	bucket.add();
-    	assertEquals(0, bucket.get(TestValue.class).size());    	
-    	
-    	bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeImport();
-    	assertEquals(3, bucket.get(TestValue.class).size());
-    	
-    	bucket.remove();
+        bucket.remove();
+        bucket.add();
+        assertEquals(0, bucket.get(TestValue.class).size());        
+        
+        bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeImport();
+        assertEquals(3, bucket.get(TestValue.class).size());
+        
+        bucket.remove();
     }
-	
-	public static class TestValue {
+    
+    public static class TestValue {
 
-		private String value;
+        private String value;
 
-		public TestValue(String value) {
-			this.value = value;
-		}
+        public TestValue(String value) {
+            this.value = value;
+        }
 
-		protected TestValue() {
-		}
+        protected TestValue() {
+        }
 
-		public String getValue() {
-			return value;
-		}
+        public String getValue() {
+            return value;
+        }
 
-		@SuppressWarnings("unused")
-		private void setValue(String value) {
-			this.value = value;
-		}
+        @SuppressWarnings("unused")
+        private void setValue(String value) {
+            this.value = value;
+        }
 
-		@Override
-		public boolean equals(Object obj) {
-			TestValue other = (TestValue) obj;
-			return this.value.equals(other.value);
-		}
+        @Override
+        public boolean equals(Object obj) {
+            TestValue other = (TestValue) obj;
+            return this.value.equals(other.value);
+        }
 
-		@Override
-		public int hashCode() {
-			return value.hashCode();
-		}
-	}
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+    }
 
 }

@@ -23,16 +23,16 @@ import terrastore.client.connection.Connection;
  * @since 2.0
  */
 public abstract class AbstractBucketOperation extends AbstractOperation {
-	
-	protected BucketOperation bucket;
-	
-	AbstractBucketOperation(BucketOperation bucket, Connection connection) {
-		super(connection);
-		this.bucket = bucket;
-	}
-	
-	public String bucketName() {
-		return bucket.bucketName();
-	}
-	
+
+    protected BucketOperation bucket;
+
+    AbstractBucketOperation(BucketOperation bucket, Connection connection) {
+        super(connection);
+        this.bucket = bucket;
+    }
+
+    public String bucketName() {
+        return bucket.bucketName();
+    }
+
 }

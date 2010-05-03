@@ -28,9 +28,9 @@ import terrastore.client.mapping.JsonObjectDescriptor;
  */
 public class RESTEasyConnectionFactory implements ConnectionFactory {
 
-	@Override
-	public Connection makeConnection(String serverHost, List<JsonObjectDescriptor<?>> descriptors) {
-		return new RESTEasyConnection(serverHost, descriptors);
-	}
+    @Override
+    public Connection makeConnection(String serverHost, List<JsonObjectDescriptor<?>> descriptors) {
+        return new RESTEasyConnection(serverHost, descriptors);
+    }
 
 }

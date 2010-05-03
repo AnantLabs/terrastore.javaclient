@@ -26,38 +26,39 @@ import terrastore.client.connection.Connection;
  */
 public class PredicateQuery extends AbstractBucketOperation {
 
-	private String predicate;
+    private String predicate;
 
-	/**
-	 * Sets up a PredicateQuery within a given bucket.
-	 * 
-	 * @param bucket
-	 * @param connection
-	 * @param predicate
-	 */
-	public PredicateQuery(BucketOperation bucket, Connection connection, String predicate) {
-		super(bucket, connection);
-		this.predicate = predicate;
-	}
+    /**
+     * Sets up a PredicateQuery within a given bucket.
+     * 
+     * @param bucket
+     * @param connection
+     * @param predicate
+     */
+    public PredicateQuery(BucketOperation bucket, Connection connection, String predicate) {
+        super(bucket, connection);
+        this.predicate = predicate;
+    }
 
-	/**
-	 * Executes this query and returns a Map of the matching keys/values.
-	 * 
-	 * @param <T> The Java type of the bucket values.
-	 * @param type The Java type of the bucket values.
-	 * @return A Values map of the matching keys/values
-	 * 
-	 * @throws TerrastoreClientException if server communication fails, or the predicate syntax is incorrect.
-	 */
-	public <T> Values<T> result(Class<T> type) throws TerrastoreClientException {
-		return connection.doPredicateQuery(this, type);
-	}
+    /**
+     * Executes this query and returns a Map of the matching keys/values.
+     * 
+     * @param <T> The Java type of the bucket values.
+     * @param type The Java type of the bucket values.
+     * @return A Values map of the matching keys/values
+     * 
+     * @throws TerrastoreClientException if server communication fails, or the
+     *             predicate syntax is incorrect.
+     */
+    public <T> Values<T> get(Class<T> type) throws TerrastoreClientException {
+        return connection.doPredicateQuery(this, type);
+    }
 
-	/**
-	 * @return the predicate query string of this PredicateQuery.
-	 */
-	public String predicate() {
-		return predicate;
-	}
+    /**
+     * @return the predicate query string of this PredicateQuery.
+     */
+    public String predicate() {
+        return predicate;
+    }
 
 }

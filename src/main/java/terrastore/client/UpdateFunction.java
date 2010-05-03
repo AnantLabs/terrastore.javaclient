@@ -23,16 +23,16 @@ package terrastore.client;
  * @since 2.0
  */
 public enum UpdateFunction {
-	REPLACE("replace");
-	
-	private final String functionId;
-	
-	UpdateFunction(String functionId) {
-		this.functionId = functionId;
-	}
-	
-	public String functionId() {
-		return functionId;
-	}
+    REPLACE("replace");
+
+    private final String functionId;
+
+    UpdateFunction(String functionId) {
+        this.functionId = functionId;
+    }
+
+    public String functionId() {
+        return functionId;
+    }
 
 }

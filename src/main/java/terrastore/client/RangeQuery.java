@@ -31,133 +31,137 @@ import terrastore.client.connection.Connection;
  */
 public class RangeQuery extends AbstractBucketOperation {
 
-	private String comparator;
-	private String startKey;
-	private String endKey;
-	private String predicate;
-	private int limit;
-	private long timeToLive;
+    private String comparator;
+    private String fromKey;
+    private String toKey;
+    private String predicate;
+    private int limit;
+    private long timeToLive;
 
-	/**
-	 * Sets up a RangeQuery within the specified bucket, using the configured
-	 * default comparator.
-	 * 
-	 * @param bucket The parent BucketOperation.
-	 * @param connection The Terrastore Connection.
-	 */
-	public RangeQuery(BucketOperation bucket, Connection connection) {
-		super(bucket, connection);
-	}
+    /**
+     * Sets up a RangeQuery within the specified bucket, using the configured
+     * default comparator.
+     * 
+     * @param bucket The parent BucketOperation.
+     * @param connection The Terrastore Connection.
+     */
+    public RangeQuery(BucketOperation bucket, Connection connection) {
+        super(bucket, connection);
+    }
 
-	/**
-	 * Sets up a RangeQuery within the specified bucket, using a specific
-	 * comparator.
-	 * 
-	 * @param bucket The parent BucketOperaton.
-	 * @param connection The Terrastore Connection.
-	 * @param comparator The name of the comparator to be used for this query.
-	 */
-	public RangeQuery(BucketOperation bucket, Connection connection, String comparator) {
-		super(bucket, connection);
-		this.comparator = comparator;
-	}
+    /**
+     * Sets up a RangeQuery within the specified bucket, using a specific
+     * comparator.
+     * 
+     * @param bucket The parent BucketOperaton.
+     * @param connection The Terrastore Connection.
+     * @param comparator The name of the comparator to be used for this query.
+     */
+    public RangeQuery(BucketOperation bucket, Connection connection,
+            String comparator) {
+        super(bucket, connection);
+        this.comparator = comparator;
+    }
 
-	/**
-	 * Specifies the start key of this range query.
-	 * 
-	 * @param startKey The first key in the range.
-	 */
-	public RangeQuery start(String startKey) {
-		this.startKey = startKey;
-		return this;
-	}
+    /**
+     * Specifies the start key of the range.
+     * 
+     * @param fromKey The first key in the range.
+     */
+    public RangeQuery from(String fromKey) {
+        this.fromKey = fromKey;
+        return this;
+    }
 
-	/**
-	 * Specifies the end key of this range query.
-	 * 
-	 * @param endKey The last key in range (inclusive).
-	 */
-	public RangeQuery end(String endKey) {
-		this.endKey = endKey;
-		return this;
-	}
+    /**
+     * Specifies the end key of the range.
+     * 
+     * @param toKey The last key in range (inclusive).
+     */
+    public RangeQuery to(String toKey) {
+        this.toKey = toKey;
+        return this;
+    }
 
-	/**
-	 * Specifies a predicate for this range query.
-	 * 
-	 * TODO: Document predicates
-	 * 
-	 * @param predicate The predicate value
-	 */
-	public RangeQuery predicate(String predicate) {
-		this.predicate = predicate;
-		return this;
-	}
+    /**
+     * Specifies a predicate/conditional for this range query.
+     * 
+     * TODO: Document predicates
+     * 
+     * @param predicate The predicate value
+     */
+    public RangeQuery conditionally(String predicate) {
+        this.predicate = predicate;
+        return this;
+    }
 
-	/**
-	 * Specifies a max limit as to the number of keys/values to retrieve.
-	 * @param limit The max amount of values to retrieve
-	 */
-	public RangeQuery limit(int limit) {
-		this.limit = limit;
-		return this;
-	}
+    /**
+     * Specifies a max limit as to the number of keys/values to retrieve.
+     * 
+     * @param limit The max amount of values to retrieve
+     */
+    public RangeQuery limit(int limit) {
+        this.limit = limit;
+        return this;
+    }
 
-	/**
-	 * Specifies the number of milliseconds determining how fresh the retrieved
-	 * data has to be; if set to 0 (default), the query will be immediately computed on
-	 * current data.
-	 * 
-	 * @param timeToLive Time to live in milliseconds
-	 */
-	public RangeQuery timeToLive(long timeToLive) {
-		this.timeToLive = timeToLive;
-		return this;
-	}
-	
-	/**
-	 * Executes this RangeQuery and returns a Values-map of the specified range selection.
-	 * 
-	 * @param <T> The Java type of the values in the current bucket.
-	 * @param type The Java type of the values in the current bucket.
-	 * @return A Map of matching keys/values.
-	 * @throws TerrastoreClientException If the query fails or is incomplete.
-	 */
-	public <T> Values<T> result(Class<T> type) throws TerrastoreClientException {
-		return connection.doRangeQuery(this, type);		
-	}
+    /**
+     * Specifies the number of milliseconds determining how fresh the retrieved
+     * data has to be; if set to 0 (default), the query will be immediately
+     * computed on current data.
+     * 
+     * @param timeToLive Time to live in milliseconds
+     */
+    public RangeQuery timeToLive(long timeToLive) {
+        this.timeToLive = timeToLive;
+        return this;
+    }
 
-	/**
-	 * @return The startKey of this range.
-	 */
-	public String startKey() {
-		return startKey;
-	}
-	
-	/**
-	 * @return The endKey of this range is one is specified, otherwise <code>null</code>
-	 */
-	public String endKey() {
-		return endKey;
-	}
+    /**
+     * Executes this RangeQuery and returns a Values-map of the specified range
+     * selection.
+     * 
+     * @param <T> The Java type of the values in the current bucket.
+     * @param type The Java type of the values in the current bucket.
+     * @return A Map of matching keys/values.
+     * @throws TerrastoreClientException If the query fails or is incomplete.
+     */
+    public <T> Values<T> get(Class<T> type) throws TerrastoreClientException {
+        return connection.doRangeQuery(this, type);
+    }
 
-	/**
-	 * @return The max amount of values that this query will return.
-	 */
-	public int limit() {
-		return limit;
-	}
+    /**
+     * @return The "from" key of this range.
+     */
+    public String from() {
+        return fromKey;
+    }
 
-	public String comparator() {
-		return comparator;
-	}
+    /**
+     * @return The "to" key of this range is one is specified, otherwise
+     *         <code>null</code>
+     */
+    public String to() {
+        return toKey;
+    }
 
-	public long timeToLive() {
-		return timeToLive;
-	}
+    /**
+     * @return The max amount of values that this query will return.
+     */
+    public int limit() {
+        return limit;
+    }
 
-	public String predicate() {
-		return predicate;
-	}
-	
+    public String comparator() {
+        return comparator;
+    }
+
+    public long timeToLive() {
+        return timeToLive;
+    }
+
+    public String predicate() {
+        return predicate;
+    }
+
 }

@@ -24,12 +24,10 @@ import terrastore.client.connection.Connection;
  */
 public class AbstractOperation {
 
-	public AbstractOperation(Connection connection) {
-		this.connection = connection;
-	}
+    public AbstractOperation(Connection connection) {
+        this.connection = connection;
+    }
 
-	protected Connection connection;
-	
-	
-	
+    protected Connection connection;
+
 }

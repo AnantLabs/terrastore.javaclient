@@ -29,23 +29,23 @@ import terrastore.client.connection.Connection;
  */
 public class BucketsOperation extends AbstractOperation {
 
-	/**
-	 * Sets up a BucketsOperation for the provided {@link Connection}
-	 * 
-	 * @param connection The Connection to be used.
-	 */
-	BucketsOperation(Connection connection) {
-		super(connection);
-	}
+    /**
+     * Sets up a BucketsOperation for the provided {@link Connection}
+     * 
+     * @param connection The Connection to be used.
+     */
+    BucketsOperation(Connection connection) {
+        super(connection);
+    }
 
-	/**
-	 * Retrieves the names of all buckets on the Terrastore server.
-	 * 
-	 * @return A {@link Set} containing all bucket names.
-	 * @throws TerrastoreClientException If server communication fails.
-	 */
-	public Set<String> list() throws TerrastoreClientException {
-		return connection.getBuckets();
-	}
-	
+    /**
+     * Retrieves the names of all buckets on the Terrastore server.
+     * 
+     * @return A {@link Set} containing all bucket names.
+     * @throws TerrastoreClientException If server communication fails.
+     */
+    public Set<String> list() throws TerrastoreClientException {
+        return connection.getBuckets();
+    }
+
 }

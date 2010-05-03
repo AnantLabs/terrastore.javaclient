@@ -39,64 +39,72 @@ import terrastore.client.mapping.JsonObjectDescriptor;
  */
 public class TerrastoreClient {
 
-	static ConnectionFactory connectionFactory = new RESTEasyConnectionFactory();
+    static ConnectionFactory connectionFactory = new RESTEasyConnectionFactory();
 
-	/**
-	 * The connection abstraction that will be used for all operations derived
-	 * from the client instance.
-	 */
-	private final Connection connection;
+    /**
+     * The connection abstraction that will be used for all operations derived
+     * from the client instance.
+     */
+    private final Connection connection;
 
-	/**
-	 * Connects to the Terrastore server identified by the provided serverHost/url.
-	 * 
-	 * @param serverHost The Terrastore server address (i.e. http://localhost:8080).
-	 */
-	public TerrastoreClient(String serverHost) throws TerrastoreClientException {
-		this(serverHost, new ArrayList<JsonObjectDescriptor<?>>(0));
-	}
-	
-	/**
-	 * Connects to the Terrastore server identified by the provided serverHost/url,
-	 * and uses the provided {@link JsonObjectDescriptor}s to serialize/deserialize
-	 * objects.
-	 * 
-	 * @param serverHost The Terrastore server address (i.e. http://localhost:8080).
-	 * @param descriptors A list of {@link JsonObjectDescriptor}s describing how to serialize
-     * and deserialize object values.
-	 */
-	public TerrastoreClient(String serverHost, List<JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
-		if (null == serverHost) {
-			throw new IllegalArgumentException("Cannot establish connection to null server URL");
-		}
-		
-		this.connection = connectionFactory.makeConnection(serverHost, descriptors);
-	}
+    /**
+     * Connects to the Terrastore server identified by the provided
+     * serverHost/url.
+     * 
+     * @param serverHost The Terrastore server address (i.e.
+     *            http://localhost:8080).
+     */
+    public TerrastoreClient(String serverHost) throws TerrastoreClientException {
+        this(serverHost, new ArrayList<JsonObjectDescriptor<?>>(0));
+    }
 
-	/**
-	 * Sets up a {@link BucketOperation} instance for the specified bucket name. 
-	 * 
-	 * @param bucketName The name of the bucket to access.
-	 * @return A {@link BucketOperation} instance for the specified bucket name.
-	 */
-	public BucketOperation bucket(String bucketName) {
-		return new BucketOperation(connection, bucketName);		
-	}
+    /**
+     * Connects to the Terrastore server identified by the provided
+     * serverHost/url, and uses the provided {@link JsonObjectDescriptor}s to
+     * serialize/deserialize objects.
+     * 
+     * @param serverHost The Terrastore server address (i.e.
+     *            http://localhost:8080).
+     * @param descriptors A list of {@link JsonObjectDescriptor}s describing how
+     *            to serialize and deserialize object values.
+     */
+    public TerrastoreClient(String serverHost,
+            List<JsonObjectDescriptor<?>> descriptors)
+            throws TerrastoreClientException {
+        if (null == serverHost) {
+            throw new IllegalArgumentException(
+                    "Cannot establish connection to null server URL");
+        }
 
-	/**
-	 * Sets up a {@link BucketsOperation}.
-	 * 
-	 * @return A {@link BucketsOperation}. 
-	 */
-	public BucketsOperation buckets() {
-		return new BucketsOperation(connection);
-	}	
-	
-	/**
-	 * @return The server host that this client instance is set up to communicate with.
-	 */
-	public String getServerHost() {
-		return connection.getServerHost();
-	}
-	
+        this.connection = connectionFactory.makeConnection(serverHost,
+                descriptors);
+    }
+
+    /**
+     * Sets up a {@link BucketOperation} instance for the specified bucket name.
+     * 
+     * @param bucketName The name of the bucket to access.
+     * @return A {@link BucketOperation} instance for the specified bucket name.
+     */
+    public BucketOperation bucket(String bucketName) {
+        return new BucketOperation(connection, bucketName);
+    }
+
+    /**
+     * Sets up a {@link BucketsOperation}.
+     * 
+     * @return A {@link BucketsOperation}.
+     */
+    public BucketsOperation buckets() {
+        return new BucketsOperation(connection);
+    }
+
+    /**
+     * @return The server host that this client instance is set up to
+     *         communicate with.
+     */
+    public String getServerHost() {
+        return connection.getServerHost();
+    }
+
 }

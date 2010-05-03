@@ -16,15 +16,16 @@
 package terrastore.client;
 
 /**
- * Unchecked exception thrown in case of unexpected communication errors towards the Terrastore server.
- *
+ * Unchecked exception thrown in case of unexpected communication errors towards
+ * the Terrastore server.
+ * 
  * @author Sergio Bossa
  */
 public class TerrastoreCommunicationException extends RuntimeException {
 
-	private static final long serialVersionUID = 8338400721828106996L;
+    private static final long serialVersionUID = 8338400721828106996L;
 
-	public TerrastoreCommunicationException(String msg, Throwable cause) {
+    public TerrastoreCommunicationException(String msg, Throwable cause) {
         super(msg, cause);
     }
 }

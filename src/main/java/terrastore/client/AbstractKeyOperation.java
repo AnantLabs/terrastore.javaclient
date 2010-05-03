@@ -24,19 +24,19 @@ import terrastore.client.connection.Connection;
  */
 public class AbstractKeyOperation extends AbstractOperation {
 
-	protected KeyOperation key;
-	
-	AbstractKeyOperation(KeyOperation key, Connection connection) {
-		super(connection);
-		this.key = key;
-	}
+    protected KeyOperation key;
 
-	public String bucketName() {
-		return key.bucketName();
-	}
-	
-	public String key() {
-		return key.key();
-	}
-	
+    AbstractKeyOperation(KeyOperation key, Connection connection) {
+        super(connection);
+        this.key = key;
+    }
+
+    public String bucketName() {
+        return key.bucketName();
+    }
+
+    public String key() {
+        return key.key();
+    }
+
 }

@@ -17,10 +17,10 @@ package terrastore.client;
 
 /**
  * General exception super type for checked exceptions thrown by the
- * {@link TerrastoreClient}. 
+ * {@link TerrastoreClient}.
  * 
- * Client code will benefit from catching the more granular sub-types of
- * this exception in order to handle specific failures.
+ * Client code will benefit from catching the more granular sub-types of this
+ * exception in order to handle specific failures.
  * 
  * @author Sven Johansson
  * @date 24 apr 2010
@@ -28,16 +28,17 @@ package terrastore.client;
  */
 public abstract class TerrastoreClientException extends Exception {
 
-	private static final long serialVersionUID = 8837607736588767483L;
+    private static final long serialVersionUID = 8837607736588767483L;
 
-	TerrastoreClientException() { }
-	
-	public TerrastoreClientException(String message) {
-		super(message);
-	}
+    TerrastoreClientException() {
+    }
 
-	public TerrastoreClientException(String message, Throwable cause) {
-		super(message, cause);
-	}
-	
+    public TerrastoreClientException(String message) {
+        super(message);
+    }
+
+    public TerrastoreClientException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }
