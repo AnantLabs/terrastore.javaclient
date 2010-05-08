@@ -37,15 +37,6 @@ import terrastore.client.Values;
 public interface Connection {
 
     /**
-     * Adds a bucket with the name specified by a {@link BucketOperation}
-     * 
-     * @param bucket The BucketOperation that describes the bucket.
-     * @throws TerrastoreClientException If the server returns a failure
-     *             response.
-     */
-    void addBucket(BucketOperation bucket) throws TerrastoreClientException;
-
-    /**
      * Removes a bucket with the name specified by a {@link BucketOperation}
      * 
      * @param bucket The BucketOperation that describes the bucket.

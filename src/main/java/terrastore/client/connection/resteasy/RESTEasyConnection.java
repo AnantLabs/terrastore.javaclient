@@ -80,22 +80,6 @@ public class RESTEasyConnection implements Connection {
             throw new IllegalStateException(ex.getMessage(), ex);
         }
     }
-    
-    @SuppressWarnings("unchecked")
-    @Override
-    public void addBucket(BucketOperation bucket) throws TerrastoreClientException {
-        try {
-            ClientRequest request = getBucketRequest(bucket.bucketName());
-            ClientResponse<String> response = request.put();
-            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity());
-            }
-        } catch (TerrastoreClientException e) {
-            throw e;
-        } catch (Exception e) {
-            throw connectionException("Unabled to add bucket", e);
-        }
-    }
 
     @SuppressWarnings("unchecked")
     @Override

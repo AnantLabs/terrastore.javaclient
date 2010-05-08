@@ -51,8 +51,7 @@ public class TerrastoreClient {
      * Connects to the Terrastore server identified by the provided
      * serverHost/url.
      * 
-     * @param serverHost The Terrastore server address (i.e.
-     *            http://localhost:8080).
+     * @param serverHost The Terrastore server address (i.e. http://localhost:8080).
      */
     public TerrastoreClient(String serverHost) throws TerrastoreClientException {
         this(serverHost, new ArrayList<JsonObjectDescriptor<?>>(0));
@@ -63,13 +62,11 @@ public class TerrastoreClient {
      * serverHost/url, and uses the provided {@link JsonObjectDescriptor}s to
      * serialize/deserialize objects.
      * 
-     * @param serverHost The Terrastore server address (i.e.
-     *            http://localhost:8080).
+     * @param serverHost The Terrastore server address (i.e. http://localhost:8080).
      * @param descriptors A list of {@link JsonObjectDescriptor}s describing how
      *            to serialize and deserialize object values.
      */
-    public TerrastoreClient(String serverHost,
-            List<JsonObjectDescriptor<?>> descriptors)
+    public TerrastoreClient(String serverHost, List<JsonObjectDescriptor<?>> descriptors)
             throws TerrastoreClientException {
         if (null == serverHost) {
             throw new IllegalArgumentException(

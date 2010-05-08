@@ -53,7 +53,7 @@ public class TerrastoreClientIntegrationTest {
 	
 	@Test
 	public void testAddThenRemoveBucket() throws Exception {
-		client.bucket("bucket").add();
+		client.bucket("bucket").key("value").put(TEST_VALUE_1);
 		client.bucket("bucket").remove();
 	}
 	
@@ -67,8 +67,8 @@ public class TerrastoreClientIntegrationTest {
 		BucketOperation bucket1 = client.bucket("bucket1");
 		BucketOperation bucket2 = client.bucket("bucket2");
 		
-		bucket1.add();
-		bucket2.add();
+		bucket1.key("value").put(TEST_VALUE_1);
+		bucket2.key("value").put(TEST_VALUE_1);
 		
 		Set<String> buckets = client.buckets().list();
 		assertEquals(2, buckets.size());
@@ -82,7 +82,6 @@ public class TerrastoreClientIntegrationTest {
 	@Test
 	public void testPutAndRemoveValue() throws TerrastoreClientException {
 		BucketOperation bucket = client.bucket("bucket");
-		bucket.add();
 		
 		bucket.key("key1").put(TEST_VALUE_1);
 		bucket.key("key1").remove();
@@ -93,7 +92,6 @@ public class TerrastoreClientIntegrationTest {
 	@Test(expected = TerrastoreRequestException.class)
     public void testRemoveValueNotFoundThrowsException() throws Exception {
 		try {
-			client.bucket("bucket").add();
 			client.bucket("bucket").key("error").remove();
 		} finally {
 			client.bucket("bucket").remove();
@@ -103,7 +101,6 @@ public class TerrastoreClientIntegrationTest {
 	@Test
 	public void testAndGetValue() throws TerrastoreClientException {
 		BucketOperation bucket = client.bucket("bucket");
-		bucket.add();
 		
 		bucket.key("key1").put(TEST_VALUE_1);
 		TestValue value = bucket.key("key1").get(TestValue.class);
@@ -118,7 +115,6 @@ public class TerrastoreClientIntegrationTest {
     	BucketOperation bucket = client.bucket("bucket");
     	
     	try {
-    		bucket.add();
     		bucket.key("not_found").get(TestValue.class);
     	} finally {
     		bucket.remove();
@@ -127,7 +123,6 @@ public class TerrastoreClientIntegrationTest {
     
     @Test
     public void testGetAllValuesWithNoLimit() throws Exception {
-    	client.bucket("bucket").add();
     	
     	client.bucket("bucket").key("key1").put(TEST_VALUE_1);
     	client.bucket("bucket").key("key2").put(TEST_VALUE_2);
@@ -148,7 +143,6 @@ public class TerrastoreClientIntegrationTest {
     
     @Test
     public void testGetAllValuesWithLimit() throws Exception {
-    	client.bucket("bucket").add();
     	
     	client.bucket("bucket").key("key1").put(TEST_VALUE_1);
     	client.bucket("bucket").key("key2").put(TEST_VALUE_2);
@@ -166,7 +160,6 @@ public class TerrastoreClientIntegrationTest {
     @Test
     public void testDoRangeQueryWithNoPredicate() throws Exception {
     	BucketOperation bucket = client.bucket("bucket");
-    	bucket.add();
     	
     	bucket.key("key1").put(TEST_VALUE_1);
     	bucket.key("key2").put(TEST_VALUE_2);
@@ -186,7 +179,6 @@ public class TerrastoreClientIntegrationTest {
     @Test
     public void testDoRangeQueryWithNoEndKey() throws Exception {
     	BucketOperation bucket = client.bucket("bucket");
-    	bucket.add();
     	
     	bucket.key("key1").put(TEST_VALUE_1);
     	bucket.key("key2").put(TEST_VALUE_2);
@@ -206,7 +198,6 @@ public class TerrastoreClientIntegrationTest {
     @Test
     public void testDoRangeQueryWithPredicate() throws Exception {
     	BucketOperation bucket = client.bucket("bucket");
-    	bucket.add();
     	
     	bucket.key("key1").put(TEST_VALUE_1);
     	bucket.key("key2").put(TEST_VALUE_2);
@@ -230,7 +221,6 @@ public class TerrastoreClientIntegrationTest {
     @Test
     public void testDoPredicateQuery() throws Exception {
     	BucketOperation bucket = client.bucket("bucket");
-    	bucket.add();
     	
     	bucket.key("key1").put(TEST_VALUE_1);
     	bucket.key("key2").put(TEST_VALUE_2);
@@ -257,7 +247,6 @@ public class TerrastoreClientIntegrationTest {
         String value1 = "value1";
         parameters.put(param1, value1);
     	
-    	client.bucket("bucket").add();
         KeyOperation key = client.bucket("bucket").key("key1");
         key.put(TEST_VALUE_1);
         
@@ -269,7 +258,6 @@ public class TerrastoreClientIntegrationTest {
     @Test
     public void testExportImportBackup() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
-        bucket.add();
         
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
@@ -280,7 +268,6 @@ public class TerrastoreClientIntegrationTest {
         bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeExport();
 
         bucket.remove();
-        bucket.add();
         assertEquals(0, bucket.get(TestValue.class).size());        
         
         bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeImport();

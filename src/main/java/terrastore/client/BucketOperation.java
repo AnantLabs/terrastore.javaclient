@@ -68,15 +68,6 @@ public class BucketOperation extends AbstractOperation {
     }
 
     /**
-     * Adds/creates this bucket on the Terrastore server cluster.
-     * 
-     * @throws TerrastoreClientException if the request fails.
-     */
-    public void add() throws TerrastoreClientException {
-        connection.addBucket(this);
-    }
-
-    /**
      * Removes/deletes this bucket on the Terrastore server cluster.
      * 
      * Removing a bucket also discards any and all content stored within.
