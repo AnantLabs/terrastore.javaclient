@@ -89,13 +89,9 @@ public class TerrastoreClientIntegrationTest {
 		bucket.remove();
 	}
 	
-	@Test(expected = TerrastoreRequestException.class)
-    public void testRemoveValueNotFoundThrowsException() throws Exception {
-		try {
-			client.bucket("bucket").key("error").remove();
-		} finally {
-			client.bucket("bucket").remove();
-		}
+	@Test
+    public void testRemoveValueNotFound() throws Exception {
+		client.bucket("bucket").key("not_found").remove();
 	}
 	
 	@Test
@@ -111,14 +107,26 @@ public class TerrastoreClientIntegrationTest {
 	}
 	
     @Test(expected = TerrastoreRequestException.class)
-    public void testGetValueNotFoundThrowsException() throws Exception {
+    public void testGetValueNotFoundFromExistingBucketThrowsException() throws Exception {
     	BucketOperation bucket = client.bucket("bucket");
+    	bucket.key("value").put(TEST_VALUE_1);
     	
     	try {
     		bucket.key("not_found").get(TestValue.class);
     	} finally {
     		bucket.remove();
     	}
+    }
+    
+    @Test(expected = TerrastoreRequestException.class)
+    public void testGetValueNotFoundFromNonExistingBucketThrowsException() throws Exception {
+        BucketOperation bucket = client.bucket("bucket");
+        
+        try {
+            bucket.key("not_found").get(TestValue.class);
+        } finally {
+            bucket.remove();
+        }
     }
     
     @Test
@@ -219,6 +227,22 @@ public class TerrastoreClientIntegrationTest {
     }
     
     @Test
+    public void testDoRangeQueryWithPredicateWhenNoKeysExists() throws Exception {
+        BucketOperation bucket = client.bucket("bucket");
+  
+        Map<String, TestValue> result = bucket.range("lexical-asc")
+            .from("key2")
+            .to("key3")
+            .conditionally("jxpath:/value")
+            .get(TestValue.class);
+        
+        assertNotNull(result);
+        assertEquals(0, result.size());
+        
+        bucket.remove();
+    }
+    
+    @Test
     public void testDoPredicateQuery() throws Exception {
     	BucketOperation bucket = client.bucket("bucket");
     	
@@ -238,6 +262,18 @@ public class TerrastoreClientIntegrationTest {
 		assertTrue(result.containsValue(TEST_VALUE_3));
 		
 		bucket.remove();
+    }
+    
+    @Test
+    public void testDoPredicateQueryWhenNoKeysExists() throws Exception {
+        BucketOperation bucket = client.bucket("bucket");
+        
+        Map<String, TestValue> result = bucket.conditional("jxpath:/value").get(TestValue.class);
+        
+        assertNotNull(result);
+        assertEquals(0, result.size());
+        
+        bucket.remove();
     }
 
     @Test
