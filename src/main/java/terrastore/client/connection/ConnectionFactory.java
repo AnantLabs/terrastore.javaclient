@@ -37,7 +37,7 @@ public interface ConnectionFactory {
      * @throws TerrastoreConnectionException
      */
     Connection makeConnection(String serverHost,
-            List<JsonObjectDescriptor<?>> descriptors)
+            List<? extends JsonObjectDescriptor<?>> descriptors)
             throws TerrastoreConnectionException;
 
 }

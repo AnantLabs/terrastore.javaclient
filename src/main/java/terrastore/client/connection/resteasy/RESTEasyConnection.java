@@ -63,7 +63,7 @@ public class RESTEasyConnection implements Connection {
     private String serverHost;
     private ClientRequestFactory requestFactory = new ClientRequestFactory();
 
-    public RESTEasyConnection(String serverHost, List<JsonObjectDescriptor<?>> descriptors) {
+    public RESTEasyConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) {
         this.serverHost = serverHost;
         try {
             ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();

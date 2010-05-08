@@ -26,7 +26,7 @@ import terrastore.client.mapping.JsonObjectDescriptor;
 /**
  * Terrastore Client for communicating with a Terrastore server cluster.
  * 
- * You only need to know and connect a single Terrastore server, as the server
+ * You only need to know and connect to a single Terrastore server, as the server
  * itself will manage requests and route them to other servers in the cluster,
  * if needed.
  * 
@@ -66,7 +66,7 @@ public class TerrastoreClient {
      * @param descriptors A list of {@link JsonObjectDescriptor}s describing how
      *            to serialize and deserialize object values.
      */
-    public TerrastoreClient(String serverHost, List<JsonObjectDescriptor<?>> descriptors)
+    public TerrastoreClient(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors)
             throws TerrastoreClientException {
         if (null == serverHost) {
             throw new IllegalArgumentException(

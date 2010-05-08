@@ -59,7 +59,7 @@ public class TerrastoreClient {
      * @param baseUrl The Terrastore server address (i.e. http://192.168.1.1:8080).
      */
     public TerrastoreClient(String baseUrl) {
-        this(baseUrl, new ArrayList<JsonObjectDescriptor>(0));
+        this(baseUrl, new ArrayList<JsonObjectDescriptor<?>>(0));
     }
 
     /**
@@ -70,7 +70,7 @@ public class TerrastoreClient {
      * @param descriptors A list of {@link JsonObjectDescriptor}s describing how to serialize
      * and deserialize object values.
      */
-    public TerrastoreClient(String baseUrl, List<? extends JsonObjectDescriptor> descriptors) {
+    public TerrastoreClient(String baseUrl, List<? extends JsonObjectDescriptor<?>> descriptors) {
         this.baseUrl = baseUrl;
         try {
             ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
