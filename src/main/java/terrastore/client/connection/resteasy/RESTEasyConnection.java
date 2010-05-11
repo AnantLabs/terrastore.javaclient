@@ -28,6 +28,7 @@ import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import terrastore.client.BackupOperation;
 import terrastore.client.KeyOperation;
+import terrastore.client.PredicateOperation;
 import terrastore.client.RangeOperation;
 import terrastore.client.TerrastoreClientException;
 import terrastore.client.TerrastoreRequestException;
@@ -209,7 +210,7 @@ public class RESTEasyConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Values<T> doPredicateQuery(ValuesOperation.Context context, Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> doPredicateQuery(PredicateOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("predicate").queryParam("predicate", context.getPredicate()).build().
                     toString();

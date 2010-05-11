@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import terrastore.client.BackupOperation;
 import terrastore.client.KeyOperation;
+import terrastore.client.PredicateOperation;
 import terrastore.client.ValuesOperation;
 import terrastore.client.RangeOperation;
 import terrastore.client.TerrastoreClientException;
@@ -77,7 +78,7 @@ public interface Connection {
     /**
      * Executes a predicate query on all values and returns the results as a Values/Map.
      */
-    <T> Values<T> doPredicateQuery(ValuesOperation.Context context, Class<T> type)
+    <T> Values<T> doPredicateQuery(PredicateOperation.Context context, Class<T> type)
             throws TerrastoreClientException;
 
     /**

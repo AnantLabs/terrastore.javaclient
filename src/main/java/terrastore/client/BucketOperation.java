@@ -77,6 +77,13 @@ public class BucketOperation extends AbstractOperation {
     }
 
     /**
+     * Sets up a {@link PredicateOperation} to evaluate a predicate on all bucket values.
+     */
+    public PredicateOperation predicate(String predicate) {
+        return new PredicateOperation(connection, bucket, predicate);
+    }
+
+    /**
      * Sets up a Range Query for this bucket with a specified comparator.
      * Comparators can be configured on the Terrastore server. Valid
      * pre-configured comparator identifiers are <code>lexical-asc</code>,

@@ -24,27 +24,26 @@ import terrastore.client.connection.Connection;
  * @author Sergio Bossa
  * @since 2.0
  */
-public class ValuesOperation extends AbstractOperation {
+public class PredicateOperation extends AbstractOperation {
 
     private final String bucket;
-    //
-    private int limit;
+    private final String predicate;
 
-    ValuesOperation(Connection connection, String bucket) {
+    PredicateOperation(Connection connection, String bucket, String predicate) {
         super(connection);
         if (null == bucket) {
             throw new IllegalArgumentException("Bucket name cannot be null.");
         }
+        if (null == predicate) {
+            throw new IllegalArgumentException("Predicate cannot be null.");
+        }
         this.bucket = bucket;
+        this.predicate = predicate;
     }
 
-    public ValuesOperation limit(int limit) {
-        this.limit = limit;
-        return this;
-    }
-
+    
     public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {
-        return connection.getAllValues(new Context(), type);
+        return connection.doPredicateQuery(new Context(), type);
     }
 
     public class Context {
@@ -53,8 +52,8 @@ public class ValuesOperation extends AbstractOperation {
             return bucket;
         }
 
-        public int getLimit() {
-            return limit;
+        public String getPredicate() {
+            return predicate;
         }
     }
 }
