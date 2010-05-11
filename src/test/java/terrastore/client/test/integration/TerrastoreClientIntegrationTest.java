@@ -259,7 +259,7 @@ public class TerrastoreClientIntegrationTest {
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
 
-        Map<String, TestValue> result = bucket.range("lexical-asc").from("key2").to("key3").conditionally("jxpath:/value").get(TestValue.class);
+        Map<String, TestValue> result = bucket.range("lexical-asc").from("key2").to("key3").predicate("jxpath:/value").get(TestValue.class);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -274,7 +274,7 @@ public class TerrastoreClientIntegrationTest {
     public void testDoRangeQueryWithPredicateWhenNoKeysExists() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
 
-        Map<String, TestValue> result = bucket.range("lexical-asc").from("key2").to("key3").conditionally("jxpath:/value").get(TestValue.class);
+        Map<String, TestValue> result = bucket.range("lexical-asc").from("key2").to("key3").predicate("jxpath:/value").get(TestValue.class);
 
         assertNotNull(result);
         assertEquals(0, result.size());

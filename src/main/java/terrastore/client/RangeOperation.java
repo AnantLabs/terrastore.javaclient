@@ -91,7 +91,7 @@ public class RangeOperation extends AbstractOperation {
      * 
      * @param predicate The predicate value
      */
-    public RangeOperation conditionally(String predicate) {
+    public RangeOperation predicate(String predicate) {
         this.predicate = predicate;
         return this;
     }
