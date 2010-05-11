@@ -19,15 +19,14 @@ import terrastore.client.connection.Connection;
 
 /**
  * @author Sven Johansson
- * @date 25 apr 2010
+ * @author Sergio Bossa
  * @since 2.0
  */
 public class AbstractOperation {
 
+    protected Connection connection;
+
     public AbstractOperation(Connection connection) {
         this.connection = connection;
     }
-
-    protected Connection connection;
-
 }

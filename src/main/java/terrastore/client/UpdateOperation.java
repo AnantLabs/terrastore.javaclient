@@ -21,17 +21,22 @@ import terrastore.client.connection.Connection;
 
 /**
  * @author Sven Johansson
- * @date 25 apr 2010
+ * @author Sergio Bossa
  * @since 2.0
  */
-public class UpdateOperation extends AbstractKeyOperation {
+public class UpdateOperation extends AbstractOperation {
 
+    private final String bucket;
+    private final String key;
+    //
     private UpdateFunction function = UpdateFunction.REPLACE;
     private Map<String, Object> parameters;
     private long timeOut;
 
-    public UpdateOperation(KeyOperation key, Connection connection) {
-        super(key, connection);
+    public UpdateOperation(Connection connection, String bucket, String key) {
+        super(connection);
+        this.bucket = bucket;
+        this.key = key;
     }
 
     /**
@@ -63,27 +68,29 @@ public class UpdateOperation extends AbstractKeyOperation {
      * @throws TerrastoreClientException
      */
     public void execute() throws TerrastoreClientException {
-        connection.executeUpdate(this);
+        connection.executeUpdate(new Context());
     }
 
-    public String key() {
-        return key.key();
-    }
+    public class Context {
 
-    public String bucketName() {
-        return key.bucketName();
-    }
+        public String getKey() {
+            return key;
+        }
 
-    public String functionId() {
-        return function.functionId();
-    }
+        public String getBucket() {
+            return bucket;
+        }
 
-    public long timeOut() {
-        return timeOut;
-    }
+        public String getFunction() {
+            return function.functionId();
+        }
 
-    public Map<String, Object> parameters() {
-        return parameters;
-    }
+        public long getTimeOut() {
+            return timeOut;
+        }
 
+        public Map<String, Object> getParameters() {
+            return parameters;
+        }
+    }
 }

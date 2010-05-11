@@ -13,8 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
-package terrastore.client.integrationtest;
+package terrastore.client.test.integration;
 
 import static org.junit.Assert.*;
 
@@ -42,19 +41,19 @@ import terrastore.client.mapping.JsonObjectDescriptor;
 public class TerrastoreClientWithCustomDescriptorIntegrationTest {
 
     private static final TestValue CUSTOM_TEST_VALUE = new TestValue("value");
-    
+
     @Test
     public void testPutThenGetWithCustomDescriptor() throws Exception {
         TerrastoreClient client = new TerrastoreClient("http://localhost:8080", Arrays.asList(new TestValueDescriptor()));
-        
+
         client.bucket("bucket").key("custom").put(CUSTOM_TEST_VALUE);
         TestValue value = client.bucket("bucket").key("custom").get(TestValue.class);
         assertNotNull(value);
         assertEquals(CUSTOM_TEST_VALUE, value);
-        
-        client.bucket("bucket").remove();        
+
+        client.bucket("bucket").remove();
     }
-    
+
     public static class TestValueDescriptor implements JsonObjectDescriptor<TestValue> {
 
         public Class<TestValue> getObjectClass() {
@@ -90,5 +89,4 @@ public class TerrastoreClientWithCustomDescriptorIntegrationTest {
             };
         }
     }
-    
 }

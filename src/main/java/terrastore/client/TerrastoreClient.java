@@ -34,13 +34,12 @@ import terrastore.client.mapping.JsonObjectDescriptor;
  * 
  * @author Sven Johansson
  * @author Sergio Bossa
- * @date 24 apr 2010
  * @since 2.0
  */
 public class TerrastoreClient {
 
     static ConnectionFactory connectionFactory = new RESTEasyConnectionFactory();
-
+    //
     /**
      * The connection abstraction that will be used for all operations derived
      * from the client instance.
@@ -95,13 +94,4 @@ public class TerrastoreClient {
     public BucketsOperation buckets() {
         return new BucketsOperation(connection);
     }
-
-    /**
-     * @return The server host that this client instance is set up to
-     *         communicate with.
-     */
-    public String getServerHost() {
-        return connection.getServerHost();
-    }
-
 }

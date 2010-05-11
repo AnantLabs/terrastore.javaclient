@@ -20,24 +20,20 @@ import static org.jboss.resteasy.plugins.providers.RegisterBuiltin.registerProvi
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-
 import terrastore.client.BackupOperation;
-import terrastore.client.BucketOperation;
 import terrastore.client.KeyOperation;
-import terrastore.client.PredicateQuery;
-import terrastore.client.RangeQuery;
+import terrastore.client.RangeOperation;
 import terrastore.client.TerrastoreClientException;
 import terrastore.client.TerrastoreRequestException;
 import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
+import terrastore.client.ValuesOperation;
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.mapping.JsonBucketsReader;
@@ -53,13 +49,11 @@ import terrastore.client.mapping.JsonValuesReader;
  * 
  * @author Sven Johansson
  * @author Sergio Bossa
- * @date 24 apr 2010
  * @since 2.0
  */
 public class RESTEasyConnection implements Connection {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
-	
     private String serverHost;
     private ClientRequestFactory requestFactory = new ClientRequestFactory();
 
@@ -74,7 +68,7 @@ public class RESTEasyConnection implements Connection {
             providerFactory.addMessageBodyReader(new JsonValuesReader(descriptors));
             providerFactory.addMessageBodyReader(new JsonBucketsReader());
             providerFactory.addMessageBodyReader(new JsonObjectReader(descriptors));
-        
+
             registerProviders(providerFactory);
         } catch (Exception ex) {
             throw new IllegalStateException(ex.getMessage(), ex);
@@ -83,9 +77,9 @@ public class RESTEasyConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void removeBucket(BucketOperation bucket) throws TerrastoreClientException {
+    public void removeBucket(String bucket) throws TerrastoreClientException {
         try {
-            ClientRequest request = getBucketRequest(bucket.bucketName());
+            ClientRequest request = getBucketRequest(bucket);
             ClientResponse<String> response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity());
@@ -117,9 +111,9 @@ public class RESTEasyConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> void putValue(KeyOperation key, T value) throws TerrastoreClientException {
+    public <T> void putValue(KeyOperation.Context context, T value) throws TerrastoreClientException {
         try {
-            ClientRequest request = getKeyRequest(key);
+            ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
             ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
@@ -130,12 +124,12 @@ public class RESTEasyConnection implements Connection {
             throw connectionException("Unable to put value", e);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getValue(KeyOperation key, Class<T> type) throws TerrastoreClientException {
+    public <T> T getValue(KeyOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
-            ClientRequest request = getKeyRequest(key);
+            ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
             ClientResponse<T> response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
@@ -149,12 +143,11 @@ public class RESTEasyConnection implements Connection {
         }
     }
 
-    
     @SuppressWarnings("unchecked")
     @Override
-    public void removeValue(KeyOperation key) throws TerrastoreClientException {
+    public void removeValue(KeyOperation.Context context) throws TerrastoreClientException {
         try {
-            ClientRequest request = getKeyRequest(key);
+            ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
             ClientResponse response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
@@ -163,14 +156,14 @@ public class RESTEasyConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException("Unable to remove value", e);
-        } 
+        }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<String, T> getAllValues(BucketOperation bucket, Class<T> type) throws TerrastoreClientException {
+    public <T> Map<String, T> getAllValues(ValuesOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
-            ClientRequest request = getBucketRequest(bucket.bucketName()).queryParameter("limit", bucket.limit());
+            ClientRequest request = getBucketRequest(context.getBucket()).queryParameter("limit", context.getLimit());
             ClientResponse response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return (Values<T>) response.getEntity(Values.class, type);
@@ -181,25 +174,23 @@ public class RESTEasyConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException("Unable to list values", e);
-        } 
+        }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Values<T> doRangeQuery(RangeQuery query, Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> doRangeQuery(RangeOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
-            UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(query.bucketName()).path("range")
-                .queryParam("startKey", query.from())
-                .queryParam("limit", query.limit())
-                .queryParam("timeToLive", query.timeToLive());
-            if (null != query.comparator()) {
-                uriBuilder.queryParam("comparator", query.comparator());
+            UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
+                    queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
+            if (null != context.getComparator()) {
+                uriBuilder.queryParam("comparator", context.getComparator());
             }
-            if (null != query.to()) {
-                uriBuilder.queryParam("endKey", query.to());
+            if (null != context.getEndKey()) {
+                uriBuilder.queryParam("endKey", context.getEndKey());
             }
-            if (null != query.predicate()) {
-                uriBuilder.queryParam("predicate", query.predicate());
+            if (null != context.getPredicate()) {
+                uriBuilder.queryParam("predicate", context.getPredicate());
             }
             String requestUri = uriBuilder.build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
@@ -215,17 +206,14 @@ public class RESTEasyConnection implements Connection {
             throw connectionException("Unable to perform query", e);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Values<T> doPredicateQuery(PredicateQuery query, Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> doPredicateQuery(ValuesOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
-            String requestUri = UriBuilder.fromUri(serverHost)
-                .path(query.bucketName())
-                .path("predicate")
-                .queryParam("predicate", query.predicate())
-                .build().toString();
-    
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("predicate").queryParam("predicate", context.getPredicate()).build().
+                    toString();
+
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.accept(JSON_CONTENT_TYPE).get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
@@ -239,12 +227,13 @@ public class RESTEasyConnection implements Connection {
             throw connectionException("Unable to perform query", e);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
-    public void exportBackup(BackupOperation backup) throws TerrastoreClientException {
+    public void exportBackup(BackupOperation.Context context) throws TerrastoreClientException {
         try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(backup.bucketName()).path("export").queryParam("destination", backup.fileName()).queryParam("secret", backup.secretKey()).build().toString();
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("export").queryParam("destination", context.getFileName()).
+                    queryParam("secret", context.getSecretKey()).build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
@@ -259,9 +248,10 @@ public class RESTEasyConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void importBackup(BackupOperation backup) throws TerrastoreClientException{
+    public void importBackup(BackupOperation.Context context) throws TerrastoreClientException {
         try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(backup.bucketName()).path("import").queryParam("source", backup.fileName()).queryParam("secret", backup.secretKey()).build().toString();
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("import").queryParam("source", context.getFileName()).queryParam("secret", context.
+                    getSecretKey()).build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
@@ -273,18 +263,16 @@ public class RESTEasyConnection implements Connection {
             throw connectionException("Unable to import backup", e);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
-    public void executeUpdate(UpdateOperation update) throws TerrastoreClientException {
+    public void executeUpdate(UpdateOperation.Context context) throws TerrastoreClientException {
         try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(update.bucketName()).path(update.key()).path("update")
-                .queryParam("function", update.functionId())
-                .queryParam("timeout", update.timeOut())
-                .build().toString();
-            
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).path("update").queryParam("function", context.
+                    getFunction()).queryParam("timeout", context.getTimeOut()).build().toString();
+
             ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, update.parameters()).post();
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, context.getParameters()).post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
             }
@@ -295,25 +283,19 @@ public class RESTEasyConnection implements Connection {
         }
     }
 
-    private ClientRequest getKeyRequest(KeyOperation key) {
-        String requestUri = UriBuilder.fromUri(serverHost).path(key.bucketName()).path(key.key()).build().toString();
+    private ClientRequest getKeyRequest(String bucket, String key) {
+        String requestUri = UriBuilder.fromUri(serverHost).path(bucket).path(key).build().toString();
         ClientRequest request = requestFactory.createRequest(requestUri);
         return request.accept(JSON_CONTENT_TYPE);
     }
 
-    private ClientRequest getBucketRequest(String bucketName) {
-        String requestUri = UriBuilder.fromUri(serverHost).path(bucketName).build().toString();
+    private ClientRequest getBucketRequest(String bucket) {
+        String requestUri = UriBuilder.fromUri(serverHost).path(bucket).build().toString();
         ClientRequest request = requestFactory.createRequest(requestUri);
         return request.accept(JSON_CONTENT_TYPE);
     }
-    
+
     private TerrastoreClientException connectionException(String message, Exception e) {
         return new TerrastoreConnectionException(message, serverHost, e);
     }
-
-    @Override
-    public String getServerHost() {
-        return serverHost;
-    }
-    
 }

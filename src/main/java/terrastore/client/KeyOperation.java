@@ -22,12 +22,13 @@ import terrastore.client.connection.Connection;
  * performed on keys, such as reading/writing values.
  * 
  * @author Sven Johansson
- * @date 24 apr 2010
+ * @author Sergio Bossa
  * @since 2.0
  */
-public class KeyOperation extends AbstractBucketOperation {
+public class KeyOperation extends AbstractOperation {
 
-    private String key;
+    private final String bucket;
+    private final String key;
 
     /**
      * Sets up a KeyOperation for the specified bucket, connection and key.
@@ -36,8 +37,9 @@ public class KeyOperation extends AbstractBucketOperation {
      * @param connection The Connection to be used for server communication.
      * @param key The key to perform operations on.
      */
-    KeyOperation(BucketOperation bucket, Connection connection, String key) {
-        super(bucket, connection);
+    KeyOperation(Connection connection, String bucket, String key) {
+        super(connection);
+        this.bucket = bucket;
         this.key = key;
     }
 
@@ -53,7 +55,7 @@ public class KeyOperation extends AbstractBucketOperation {
      *             value is rejected, i.e. because it cannot be serialized.
      */
     public <T> void put(T value) throws TerrastoreClientException {
-        connection.putValue(this, value);
+        connection.putValue(new Context(), value);
     }
 
     /**
@@ -62,7 +64,7 @@ public class KeyOperation extends AbstractBucketOperation {
      * @throws TerrastoreClientException if server communication fails.
      */
     public void remove() throws TerrastoreClientException {
-        connection.removeValue(this);
+        connection.removeValue(new Context());
     }
 
     /**
@@ -76,7 +78,7 @@ public class KeyOperation extends AbstractBucketOperation {
      *             key does not exist within the current bucket.
      */
     public <T> T get(Class<T> type) throws TerrastoreClientException {
-        return connection.getValue(this, type);
+        return connection.getValue(new Context(), type);
     }
 
     /**
@@ -85,21 +87,17 @@ public class KeyOperation extends AbstractBucketOperation {
      * @return an UpdateOperation for the current key.
      */
     public UpdateOperation update() {
-        return new UpdateOperation(this, connection);
+        return new UpdateOperation(connection, bucket, key);
     }
 
-    /**
-     * @return The name of the key that this KeyOperation pertains to.
-     */
-    public String key() {
-        return key;
-    }
+    public class Context {
 
-    /**
-     * @return The name of the bucket that this KeyOperation operates within.
-     */
-    public String bucketName() {
-        return bucket.bucketName();
-    }
+        public String getKey() {
+            return key;
+        }
 
+        public String getBucket() {
+            return bucket;
+        }
+    }
 }

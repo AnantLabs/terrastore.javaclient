@@ -13,7 +13,6 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
 package terrastore.client;
 
 import terrastore.client.connection.Connection;
@@ -23,11 +22,13 @@ import terrastore.client.connection.Connection;
  * specific buckets contents to/from disk.
  * 
  * @author Sven Johansson
- * @date 24 apr 2010
+ * @author Sergio Bossa
  * @since 2.0
  */
-public class BackupOperation extends AbstractBucketOperation {
+public class BackupOperation extends AbstractOperation {
 
+    private final String bucket;
+    //
     private String fileName;
     private String secretKey;
 
@@ -38,8 +39,9 @@ public class BackupOperation extends AbstractBucketOperation {
      * @param bucket The parent {@link BucketOperation}
      * @param connection The Terrastore server {@link Connection}
      */
-    BackupOperation(BucketOperation bucket, Connection connection) {
-        super(bucket, connection);
+    BackupOperation(Connection connection, String bucket) {
+        super(connection);
+        this.bucket = bucket;
     }
 
     /**
@@ -73,7 +75,7 @@ public class BackupOperation extends AbstractBucketOperation {
      * @see #secretKey()
      */
     public void executeExport() throws TerrastoreClientException {
-        connection.exportBackup(this);
+        connection.exportBackup(new Context());
     }
 
     /**
@@ -87,15 +89,21 @@ public class BackupOperation extends AbstractBucketOperation {
      *             request is not valid - i.e, the secret key is rejected.
      */
     public void executeImport() throws TerrastoreClientException {
-        connection.importBackup(this);
+        connection.importBackup(new Context());
     }
 
-    public String fileName() {
-        return fileName;
-    }
+    public class Context {
 
-    public String secretKey() {
-        return secretKey;
-    }
+        public String getBucket() {
+            return bucket;
+        }
 
+        public String getFileName() {
+            return fileName;
+        }
+
+        public String getSecretKey() {
+            return secretKey;
+        }
+    }
 }

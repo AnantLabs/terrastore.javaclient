@@ -15,8 +15,6 @@
  */
 package terrastore.client;
 
-import java.util.Map;
-
 import terrastore.client.connection.Connection;
 
 /**
@@ -28,43 +26,26 @@ import terrastore.client.connection.Connection;
  * performed on a specific bucket.
  * 
  * @author Sven Johansson
- * @date 24 apr 2010
+ * @author Sergio Bossa
  * @since 2.0
  */
 public class BucketOperation extends AbstractOperation {
 
-    private String bucketName;
-    private int limit = 0;
+    private final String bucket;
 
     /**
      * Sets up a BucketOperation for the specified bucket and Terrastore
      * {@link Connection}
      * 
      * @param connection The connection to be used for bucket operations
-     * @param bucketName The bucket to be operated on.
+     * @param bucket The bucket to be operated on.
      */
-    BucketOperation(Connection connection, String bucketName) {
+    BucketOperation(Connection connection, String bucket) {
         super(connection);
-        if (null == bucketName) {
+        if (null == bucket) {
             throw new IllegalArgumentException("Bucket name cannot be null.");
         }
-        this.bucketName = bucketName;
-    }
-
-    /**
-     * Sets a max limit for retrieving values from this bucket.
-     * 
-     * The limit option is only valid for the {@link BucketOperation#get(Class)}
-     * operation, and has no effect on other operations.
-     * 
-     * @param limit The max number of keys/values to retrieve from this bucket.
-     * @return
-     * 
-     * @see BucketOperation#get(Class)
-     */
-    public BucketOperation limit(int limit) {
-        this.limit = limit;
-        return this;
+        this.bucket = bucket;
     }
 
     /**
@@ -75,7 +56,7 @@ public class BucketOperation extends AbstractOperation {
      * @throws TerrastoreClientException if the request fails
      */
     public void remove() throws TerrastoreClientException {
-        connection.removeBucket(this);
+        connection.removeBucket(bucket);
     }
 
     /**
@@ -85,24 +66,14 @@ public class BucketOperation extends AbstractOperation {
      * @return a {@link KeyOperation} instance for the specified key.
      */
     public KeyOperation key(String key) {
-        return new KeyOperation(this, connection, key);
+        return new KeyOperation(connection, bucket, key);
     }
 
     /**
-     * Lists all values, or a subset of values defined by the
-     * {@link #limit(int)} method, in this bucket. You must provide the expected
-     * Java type for these values.
-     * 
-     * @param <T> The Java type of the values in this bucket
-     * @param type The Java type of the values in this bucket
-     * @return A {@link Map} of the bucket contents.
-     * @throws TerrastoreClientException if server communication fails, or
-     *             values cannot be deserialized to the specified type.
-     * 
-     * @see BucketOperation#limit(int)
+     * Sets up a {@link ValuesOperation} to act on all bucket values.
      */
-    public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {
-        return connection.getAllValues(this, type);
+    public ValuesOperation values() {
+        return new ValuesOperation(connection, bucket);
     }
 
     /**
@@ -113,35 +84,23 @@ public class BucketOperation extends AbstractOperation {
      * <code>numeric-desc</code>.
      * 
      * @param comparator The name/identifier of the comparator to be used.
-     * @return A RangeQuery instance with the specified comparator
+     * @return A RangeOperation instance with the specified comparator
      */
-    public RangeQuery range(String comparator) {
-        return new RangeQuery(this, connection, comparator);
+    public RangeOperation range(String comparator) {
+        return new RangeOperation(connection, bucket, comparator);
     }
 
     /**
-     * Sets up a {@link RangeQuery} for this bucket with the, on the Terrastore
+     * Sets up a {@link RangeOperation} for this bucket with the, on the Terrastore
      * server, configured default comparator.
      * 
      * The default comparator is <code>lexical-asc</code>, unless default
      * configuration has been overriden.
      * 
-     * @return A RangeQuery with the default comparator.
+     * @return A RangeOperation with the default comparator.
      */
-    public RangeQuery range() {
-        return new RangeQuery(this, connection);
-    }
-
-    /**
-     * Sets up a {@link PredicateQuery} within this bucket.
-     * 
-     * TODO: Quick instruction about predicates. JxPath only?
-     * 
-     * @param predicate The predicate to be used
-     * @return
-     */
-    public PredicateQuery conditional(String predicate) {
-        return new PredicateQuery(this, connection, predicate);
+    public RangeOperation range() {
+        return new RangeOperation(connection, bucket);
     }
 
     /**
@@ -150,18 +109,6 @@ public class BucketOperation extends AbstractOperation {
      * @return A {@link BackupOperation} for this bucket.
      */
     public BackupOperation backup() {
-        return new BackupOperation(this, connection);
+        return new BackupOperation(connection, bucket);
     }
-
-    /**
-     * @return the name of the bucket this instance operates on.
-     */
-    public String bucketName() {
-        return bucketName;
-    }
-
-    public int limit() {
-        return limit;
-    }
-
 }
