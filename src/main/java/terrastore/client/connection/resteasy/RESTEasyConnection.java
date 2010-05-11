@@ -180,7 +180,7 @@ public class RESTEasyConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Values<T> doRangeQuery(RangeOperation.Context context, Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> queryByRange(RangeOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
             UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
                     queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
@@ -210,7 +210,7 @@ public class RESTEasyConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Values<T> doPredicateQuery(PredicateOperation.Context context, Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> queryByPredicate(PredicateOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("predicate").queryParam("predicate", context.getPredicate()).build().
                     toString();

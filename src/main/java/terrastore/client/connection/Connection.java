@@ -72,13 +72,13 @@ public interface Connection {
     /**
      * Executes a range query and returns the results as a Values/Map.
      */
-    <T> Values<T> doRangeQuery(RangeOperation.Context context, Class<T> type)
+    <T> Values<T> queryByRange(RangeOperation.Context context, Class<T> type)
             throws TerrastoreClientException;
 
     /**
      * Executes a predicate query on all values and returns the results as a Values/Map.
      */
-    <T> Values<T> doPredicateQuery(PredicateOperation.Context context, Class<T> type)
+    <T> Values<T> queryByPredicate(PredicateOperation.Context context, Class<T> type)
             throws TerrastoreClientException;
 
     /**

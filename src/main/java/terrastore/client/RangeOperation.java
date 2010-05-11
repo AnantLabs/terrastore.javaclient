@@ -128,7 +128,7 @@ public class RangeOperation extends AbstractOperation {
      * @throws TerrastoreClientException If the query fails or is incomplete.
      */
     public <T> Values<T> get(Class<T> type) throws TerrastoreClientException {
-        return connection.doRangeQuery(new Context(), type);
+        return connection.queryByRange(new Context(), type);
     }
 
     public class Context {

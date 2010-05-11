@@ -43,7 +43,7 @@ public class PredicateOperation extends AbstractOperation {
 
     
     public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {
-        return connection.doPredicateQuery(new Context(), type);
+        return connection.queryByPredicate(new Context(), type);
     }
 
     public class Context {
