@@ -27,6 +27,7 @@ import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import terrastore.client.BackupOperation;
+import terrastore.client.ConditionalOperation;
 import terrastore.client.KeyOperation;
 import terrastore.client.PredicateOperation;
 import terrastore.client.RangeOperation;
@@ -128,9 +129,47 @@ public class RESTEasyConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
+    public <T> void putValue(ConditionalOperation.Context context, T value) throws TerrastoreClientException {
+        try {
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).queryParam("predicate", context.getPredicate()).
+                    build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw connectionException("Unable to put value", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public <T> T getValue(KeyOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
             ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
+            ClientResponse<T> response = request.get();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(type);
+            } else {
+                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw connectionException("Unable to get value", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getValue(ConditionalOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        try {
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).queryParam("predicate", context.getPredicate()).
+                    build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse<T> response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);

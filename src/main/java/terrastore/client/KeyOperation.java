@@ -90,6 +90,10 @@ public class KeyOperation extends AbstractOperation {
         return new UpdateOperation(connection, bucket, key);
     }
 
+    public ConditionalOperation conditional(String predicate) {
+        return new ConditionalOperation(connection, bucket, key, predicate);
+    }
+
     public class Context {
 
         public String getKey() {

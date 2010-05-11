@@ -92,7 +92,7 @@ public class TerrastoreClientIntegrationTest {
     }
 
     @Test
-    public void testAndGetValue() throws TerrastoreClientException {
+    public void testAddAndGetValue() throws TerrastoreClientException {
         BucketOperation bucket = client.bucket("bucket");
 
         bucket.key("key1").put(TEST_VALUE_1);
@@ -101,6 +101,57 @@ public class TerrastoreClientIntegrationTest {
         assertEquals(TEST_VALUE_1, value);
 
         bucket.remove();
+    }
+
+    @Test
+    public void testConditionallyPutValue() throws Exception {
+        BucketOperation bucket = client.bucket("bucket");
+
+        bucket.key("key1").put(TEST_VALUE_1);
+
+        bucket.key("key1").conditional("jxpath:/value").put(TEST_VALUE_2);
+
+        assertEquals(TEST_VALUE_2, bucket.key("key1").get(TestValue.class));
+
+        bucket.remove();
+    }
+
+    @Test(expected = TerrastoreRequestException.class)
+    public void testConditionallyPutValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
+        BucketOperation bucket = client.bucket("bucket");
+
+        bucket.key("key1").put(TEST_VALUE_1);
+
+        try {
+            bucket.key("key1").conditional("jxpath:/notFound").put(TEST_VALUE_2);
+        } finally {
+            assertEquals(TEST_VALUE_1, bucket.key("key1").get(TestValue.class));
+            bucket.remove();
+        }
+    }
+
+    @Test
+    public void testConditionallyGetValue() throws Exception {
+        BucketOperation bucket = client.bucket("bucket");
+
+        bucket.key("key1").put(TEST_VALUE_1);
+
+        assertEquals(TEST_VALUE_1, bucket.key("key1").conditional("jxpath:/value").get(TestValue.class));
+
+        bucket.remove();
+    }
+
+    @Test(expected = TerrastoreRequestException.class)
+    public void testConditionallyGetValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
+        BucketOperation bucket = client.bucket("bucket");
+
+        bucket.key("key1").put(TEST_VALUE_1);
+
+        try {
+            bucket.key("key1").conditional("jxpath:/notFound").get(TestValue.class);
+        } finally {
+            bucket.remove();
+        }
     }
 
     @Test(expected = TerrastoreRequestException.class)

@@ -18,6 +18,7 @@ package terrastore.client.connection;
 import java.util.Map;
 import java.util.Set;
 import terrastore.client.BackupOperation;
+import terrastore.client.ConditionalOperation;
 import terrastore.client.KeyOperation;
 import terrastore.client.PredicateOperation;
 import terrastore.client.ValuesOperation;
@@ -52,6 +53,12 @@ public interface Connection {
             throws TerrastoreClientException;
 
     /**
+     * Conditionally put/store a value in a bucket.
+     */
+    <T> void putValue(ConditionalOperation.Context context, T value)
+            throws TerrastoreClientException;
+
+    /**
      * Remove/delete a key and its value.
      */
     void removeValue(KeyOperation.Context context) throws TerrastoreClientException;
@@ -61,6 +68,13 @@ public interface Connection {
      * type.
      */
     <T> T getValue(KeyOperation.Context context, Class<T> type)
+            throws TerrastoreClientException;
+
+    /**
+     * Conditionally gets the stored value for a key, as an instance of the specified Java
+     * type.
+     */
+    <T> T getValue(ConditionalOperation.Context context, Class<T> type)
             throws TerrastoreClientException;
 
     /**
