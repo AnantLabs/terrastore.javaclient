@@ -33,35 +33,31 @@ public class RangeOperation extends AbstractOperation {
     private final String bucket;
     private final String comparator;
     //
-    private String fromKey;
-    private String toKey;
-    private String predicate;
-    private int limit;
-    private long timeToLive;
+    private volatile String fromKey;
+    private volatile String toKey;
+    private volatile String predicate;
+    private volatile int limit;
+    private volatile long timeToLive;
 
-    /**
-     * Sets up a RangeOperation within the specified bucket, using the configured
-     * default comparator.
-     * 
-     * @param bucket The parent BucketOperation.
-     * @param connection The Terrastore Connection.
-     */
     RangeOperation(Connection connection, String bucket) {
         this(connection, bucket, null);
     }
 
-    /**
-     * Sets up a RangeOperation within the specified bucket, using a specific
-     * comparator.
-     * 
-     * @param bucket The parent BucketOperaton.
-     * @param connection The Terrastore Connection.
-     * @param comparator The name of the comparator to be used for this query.
-     */
     RangeOperation(Connection connection, String bucket, String comparator) {
         super(connection);
         this.bucket = bucket;
         this.comparator = comparator;
+    }
+
+    RangeOperation(RangeOperation other) {
+        super(other.connection);
+        this.bucket = other.bucket;
+        this.comparator = other.comparator;
+        this.fromKey = other.fromKey;
+        this.toKey = other.toKey;
+        this.limit = other.limit;
+        this.predicate = other.predicate;
+        this.timeToLive = other.timeToLive;
     }
 
     /**
@@ -70,8 +66,9 @@ public class RangeOperation extends AbstractOperation {
      * @param fromKey The first key in the range.
      */
     public RangeOperation from(String fromKey) {
-        this.fromKey = fromKey;
-        return this;
+        RangeOperation newInstance = new RangeOperation(this);
+        newInstance.fromKey = fromKey;
+        return newInstance;
     }
 
     /**
@@ -80,20 +77,20 @@ public class RangeOperation extends AbstractOperation {
      * @param toKey The last key in range (inclusive).
      */
     public RangeOperation to(String toKey) {
-        this.toKey = toKey;
-        return this;
+        RangeOperation newInstance = new RangeOperation(this);
+        newInstance.toKey = toKey;
+        return newInstance;
     }
 
     /**
      * Specifies a predicate/conditional for this range query.
      * 
-     * TODO: Document predicates
-     * 
      * @param predicate The predicate value
      */
     public RangeOperation predicate(String predicate) {
-        this.predicate = predicate;
-        return this;
+        RangeOperation newInstance = new RangeOperation(this);
+        newInstance.predicate = predicate;
+        return newInstance;
     }
 
     /**
@@ -102,8 +99,9 @@ public class RangeOperation extends AbstractOperation {
      * @param limit The max amount of values to retrieve
      */
     public RangeOperation limit(int limit) {
-        this.limit = limit;
-        return this;
+        RangeOperation newInstance = new RangeOperation(this);
+        newInstance.limit = limit;
+        return newInstance;
     }
 
     /**
@@ -114,8 +112,9 @@ public class RangeOperation extends AbstractOperation {
      * @param timeToLive Time to live in milliseconds
      */
     public RangeOperation timeToLive(long timeToLive) {
-        this.timeToLive = timeToLive;
-        return this;
+        RangeOperation newInstance = new RangeOperation(this);
+        newInstance.timeToLive = timeToLive;
+        return newInstance;
     }
 
     /**

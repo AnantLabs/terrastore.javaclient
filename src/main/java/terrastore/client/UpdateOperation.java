@@ -16,7 +16,6 @@
 package terrastore.client;
 
 import java.util.Map;
-
 import terrastore.client.connection.Connection;
 
 /**
@@ -30,8 +29,8 @@ public class UpdateOperation extends AbstractOperation {
     private final String key;
     private final String function;
     //
-    private Map<String, Object> parameters;
-    private long timeOut;
+    private volatile Map<String, Object> parameters;
+    private volatile long timeOut;
 
     public UpdateOperation(Connection connection, String bucket, String key, String function) {
         super(connection);
@@ -40,20 +39,34 @@ public class UpdateOperation extends AbstractOperation {
         this.function = function;
     }
 
+    UpdateOperation(UpdateOperation other) {
+        super(other.connection);
+        this.bucket = other.bucket;
+        this.key = other.key;
+        this.function = other.function;
+        this.parameters = other.parameters;
+        this.timeOut = other.timeOut;
+    }
+
     /**
-     * Specifies The max number of milliseconds for the update operation to
+     * Specifies the max number of milliseconds for the update operation to
      * complete successfully.
-     * 
+     *
      * @param timeOut The timeout for this operation, in milliseconds
      */
     public UpdateOperation timeOut(long timeOut) {
-        this.timeOut = timeOut;
-        return this;
+        UpdateOperation newInstance = new UpdateOperation(this);
+        newInstance.timeOut = timeOut;
+        return newInstance;
     }
 
+    /**
+     * Specifies update function parameters.
+     */
     public UpdateOperation parameters(Map<String, Object> parameters) {
-        this.parameters = parameters;
-        return this;
+        UpdateOperation newInstance = new UpdateOperation(this);
+        newInstance.parameters = parameters;
+        return newInstance;
     }
 
     /**

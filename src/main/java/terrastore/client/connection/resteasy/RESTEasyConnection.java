@@ -279,7 +279,7 @@ public class RESTEasyConnection implements Connection {
     @Override
     public void exportBackup(BackupOperation.Context context) throws TerrastoreClientException {
         try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("export").queryParam("destination", context.getFileName()).
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("export").queryParam("destination", context.getFile()).
                     queryParam("secret", context.getSecretKey()).build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
@@ -297,7 +297,7 @@ public class RESTEasyConnection implements Connection {
     @Override
     public void importBackup(BackupOperation.Context context) throws TerrastoreClientException {
         try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("import").queryParam("source", context.getFileName()).queryParam("secret", context.
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("import").queryParam("source", context.getFile()).queryParam("secret", context.
                     getSecretKey()).build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();

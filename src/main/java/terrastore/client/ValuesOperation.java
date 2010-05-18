@@ -16,7 +16,6 @@
 package terrastore.client;
 
 import java.util.Map;
-
 import terrastore.client.connection.Connection;
 
 /**
@@ -28,7 +27,7 @@ public class ValuesOperation extends AbstractOperation {
 
     private final String bucket;
     //
-    private int limit;
+    private volatile int limit;
 
     ValuesOperation(Connection connection, String bucket) {
         super(connection);
@@ -38,9 +37,16 @@ public class ValuesOperation extends AbstractOperation {
         this.bucket = bucket;
     }
 
+    ValuesOperation(ValuesOperation other) {
+        super(other.connection);
+        this.bucket = other.bucket;
+        this.limit = other.limit;
+    }
+
     public ValuesOperation limit(int limit) {
-        this.limit = limit;
-        return this;
+        ValuesOperation newInstance = new ValuesOperation(this);
+        newInstance.limit = limit;
+        return newInstance;
     }
 
     public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {

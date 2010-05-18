@@ -24,7 +24,7 @@ import terrastore.client.connection.Connection;
  */
 public class AbstractOperation {
 
-    protected Connection connection;
+    protected final Connection connection;
 
     public AbstractOperation(Connection connection) {
         this.connection = connection;

@@ -29,8 +29,8 @@ public class BackupOperation extends AbstractOperation {
 
     private final String bucket;
     //
-    private String fileName;
-    private String secretKey;
+    private volatile String file;
+    private volatile String secretKey;
 
     /**
      * Sets up a {@link BackupOperation} for a specific bucket and
@@ -44,14 +44,22 @@ public class BackupOperation extends AbstractOperation {
         this.bucket = bucket;
     }
 
+    BackupOperation(BackupOperation other) {
+        super(other.connection);
+        this.bucket = other.bucket;
+        this.file = other.file;
+        this.secretKey = other.secretKey;
+    }
+
     /**
      * Specifies the source or destination file name for the backup operation.
      * 
-     * @param fileName The name of the server side file to read/write from.
+     * @param file The name of the server side file to read/write from.
      */
-    public BackupOperation file(String fileName) {
-        this.fileName = fileName;
-        return this;
+    public BackupOperation file(String file) {
+        BackupOperation newInstance = new BackupOperation(this);
+        newInstance.file = file;
+        return newInstance;
     }
 
     /**
@@ -61,8 +69,9 @@ public class BackupOperation extends AbstractOperation {
      * @param secretKey The "secret key" to be used in server communication.
      */
     public BackupOperation secretKey(String secretKey) {
-        this.secretKey = secretKey;
-        return this;
+        BackupOperation newInstance = new BackupOperation(this);
+        newInstance.secretKey = secretKey;
+        return newInstance;
     }
 
     /**
@@ -98,8 +107,8 @@ public class BackupOperation extends AbstractOperation {
             return bucket;
         }
 
-        public String getFileName() {
-            return fileName;
+        public String getFile() {
+            return file;
         }
 
         public String getSecretKey() {
