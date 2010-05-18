@@ -86,8 +86,8 @@ public class KeyOperation extends AbstractOperation {
      * 
      * @return an UpdateOperation for the current key.
      */
-    public UpdateOperation update() {
-        return new UpdateOperation(connection, bucket, key);
+    public UpdateOperation update(String function) {
+        return new UpdateOperation(connection, bucket, key, function);
     }
 
     public ConditionalOperation conditional(String predicate) {

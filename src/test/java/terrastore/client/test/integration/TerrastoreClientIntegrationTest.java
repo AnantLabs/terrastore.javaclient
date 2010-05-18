@@ -327,7 +327,7 @@ public class TerrastoreClientIntegrationTest {
         KeyOperation key = client.bucket("bucket").key("key1");
         key.put(TEST_VALUE_1);
 
-        key.update().timeOut(1000L).parameters(parameters).execute();
+        key.update("replace").timeOut(1000L).parameters(parameters).execute();
 
         client.bucket("bucket").remove();
     }

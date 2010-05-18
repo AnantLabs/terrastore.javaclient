@@ -28,15 +28,16 @@ public class UpdateOperation extends AbstractOperation {
 
     private final String bucket;
     private final String key;
+    private final String function;
     //
-    private UpdateFunction function = UpdateFunction.REPLACE;
     private Map<String, Object> parameters;
     private long timeOut;
 
-    public UpdateOperation(Connection connection, String bucket, String key) {
+    public UpdateOperation(Connection connection, String bucket, String key, String function) {
         super(connection);
         this.bucket = bucket;
         this.key = key;
+        this.function = function;
     }
 
     /**
@@ -82,7 +83,7 @@ public class UpdateOperation extends AbstractOperation {
         }
 
         public String getFunction() {
-            return function.functionId();
+            return function;
         }
 
         public long getTimeOut() {
