@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import org.apache.commons.httpclient.HttpClient;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
@@ -56,11 +57,17 @@ import terrastore.client.mapping.JsonValuesReader;
 public class RESTEasyConnection implements Connection {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
-    private String serverHost;
-    private ClientRequestFactory requestFactory = new ClientRequestFactory();
+    //
+    private final String serverHost;
+    private final ClientRequestFactory requestFactory;
 
     public RESTEasyConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) {
+        this(serverHost, descriptors, new HttpClient());
+    }
+
+    public RESTEasyConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
         this.serverHost = serverHost;
+        this.requestFactory = new ClientRequestFactory(httpClient);
         try {
             ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
             // Registration order matters: JsonObjectWriter must come last because writes all:

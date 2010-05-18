@@ -19,18 +19,18 @@ import java.util.List;
 
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.ConnectionFactory;
+import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
  * @author Sven Johansson
- * @date 24 apr 2010
+ * @author Sergio Bossa
  * @since 2.0
  */
 public class RESTEasyConnectionFactory implements ConnectionFactory {
 
     @Override
-    public Connection makeConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) {
+    public Connection makeConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException {
         return new RESTEasyConnection(serverHost, descriptors);
     }
-
 }

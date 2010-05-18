@@ -31,6 +31,7 @@ import terrastore.client.KeyOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
 import terrastore.client.TerrastoreRequestException;
+import terrastore.client.connection.resteasy.RESTEasyConnectionFactory;
 
 /**
  * @author Sergio Bossa
@@ -45,7 +46,7 @@ public class TerrastoreClientIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        client = new TerrastoreClient("http://localhost:8080");
+        client = new TerrastoreClient("http://localhost:8080", new RESTEasyConnectionFactory());
     }
 
     @Test

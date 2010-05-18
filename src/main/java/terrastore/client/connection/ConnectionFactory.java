@@ -13,31 +13,17 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
 package terrastore.client.connection;
 
 import java.util.List;
-
 import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
- * 
  * @author Sven Johansson
- * @date 24 apr 2010
+ * @author Sergio Bossa
  * @since 2.0
  */
 public interface ConnectionFactory {
 
-    /**
-     * Establishes a connection to a Terrastore server residing at the specified
-     * host/url.
-     * 
-     * @param serverHost The host/url of the server to connect to.
-     * @return A connection
-     * @throws TerrastoreConnectionException
-     */
-    Connection makeConnection(String serverHost,
-            List<? extends JsonObjectDescriptor<?>> descriptors)
-            throws TerrastoreConnectionException;
-
+    Connection makeConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException;
 }

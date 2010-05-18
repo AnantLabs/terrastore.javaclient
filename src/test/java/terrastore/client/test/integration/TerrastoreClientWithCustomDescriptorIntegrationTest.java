@@ -30,6 +30,7 @@ import org.codehaus.jackson.map.SerializerProvider;
 import org.junit.Test;
 
 import terrastore.client.TerrastoreClient;
+import terrastore.client.connection.resteasy.RESTEasyConnectionFactory;
 import terrastore.client.legacy.TerrastoreClientWithCustomDescriptorTest.TestValue;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
@@ -44,7 +45,7 @@ public class TerrastoreClientWithCustomDescriptorIntegrationTest {
 
     @Test
     public void testPutThenGetWithCustomDescriptor() throws Exception {
-        TerrastoreClient client = new TerrastoreClient("http://localhost:8080", Arrays.asList(new TestValueDescriptor()));
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080", new RESTEasyConnectionFactory(), Arrays.asList(new TestValueDescriptor()));
 
         client.bucket("bucket").key("custom").put(CUSTOM_TEST_VALUE);
         TestValue value = client.bucket("bucket").key("custom").get(TestValue.class);

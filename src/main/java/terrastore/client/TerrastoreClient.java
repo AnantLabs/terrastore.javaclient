@@ -20,7 +20,6 @@ import java.util.List;
 
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.ConnectionFactory;
-import terrastore.client.connection.resteasy.RESTEasyConnectionFactory;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
@@ -38,42 +37,27 @@ import terrastore.client.mapping.JsonObjectDescriptor;
  */
 public class TerrastoreClient {
 
-    static ConnectionFactory connectionFactory = new RESTEasyConnectionFactory();
-    //
-    /**
-     * The connection abstraction that will be used for all operations derived
-     * from the client instance.
-     */
     private final Connection connection;
 
     /**
      * Connects to the Terrastore server identified by the provided
      * serverHost/url.
-     * 
-     * @param serverHost The Terrastore server address (i.e. http://localhost:8080).
      */
-    public TerrastoreClient(String serverHost) throws TerrastoreClientException {
-        this(serverHost, new ArrayList<JsonObjectDescriptor<?>>(0));
+    public TerrastoreClient(String serverHost, ConnectionFactory connectionFactory) throws TerrastoreClientException {
+        this(serverHost, connectionFactory, new ArrayList<JsonObjectDescriptor<?>>(0));
     }
 
     /**
      * Connects to the Terrastore server identified by the provided
      * serverHost/url, and uses the provided {@link JsonObjectDescriptor}s to
      * serialize/deserialize objects.
-     * 
-     * @param serverHost The Terrastore server address (i.e. http://localhost:8080).
-     * @param descriptors A list of {@link JsonObjectDescriptor}s describing how
-     *            to serialize and deserialize object values.
      */
-    public TerrastoreClient(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors)
-            throws TerrastoreClientException {
+    public TerrastoreClient(String serverHost, ConnectionFactory connectionFactory, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
         if (null == serverHost) {
             throw new IllegalArgumentException(
                     "Cannot establish connection to null server URL");
         }
-
-        this.connection = connectionFactory.makeConnection(serverHost,
-                descriptors);
+        this.connection = connectionFactory.makeConnection(serverHost, descriptors);
     }
 
     /**
