@@ -22,11 +22,11 @@ import terrastore.client.TerrastoreClientException;
  * @author Sven Johansson
  * @since 2.0
  */
-public class EnsembleUnavailableException extends TerrastoreClientException {
+public class ClusterUnavailableException extends TerrastoreClientException {
 
     private static final long serialVersionUID = 3152412705157825373L;
 
-    public EnsembleUnavailableException(String message) {
+    public ClusterUnavailableException(String message) {
         super(message);
     }
 

@@ -38,7 +38,7 @@ import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
 import terrastore.client.connection.Connection;
-import terrastore.client.connection.EnsembleUnavailableException;
+import terrastore.client.connection.ClusterUnavailableException;
 import terrastore.client.connection.KeyNotFoundException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.TerrastoreServerException;
@@ -378,7 +378,7 @@ public class HTTPConnection implements Connection {
         case 500:
             return new TerrastoreServerException("Unexpected server error.");
         case 503:
-            return new EnsembleUnavailableException("The server ensemble, or parts of the ensemble, is not not available.");
+            return new ClusterUnavailableException("The server cluster, or parts of the cluster, is not not available.");
         default:
             return new TerrastoreRequestException(response.getStatus(), response.getEntity(String.class).toString());
         }
