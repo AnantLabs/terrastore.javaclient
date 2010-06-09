@@ -50,7 +50,7 @@ public class TerrastoreClientIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        client = new TerrastoreClient("http://localhost:9080", new HTTPConnectionFactory());
+        client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory());
     }
 
     @Test

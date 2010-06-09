@@ -26,7 +26,7 @@ package terrastore.client;
  * @date 24 apr 2010
  * @since 2.0
  */
-public abstract class TerrastoreClientException extends Exception {
+public abstract class TerrastoreClientException extends RuntimeException {
 
     private static final long serialVersionUID = 8837607736588767483L;
 
