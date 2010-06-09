@@ -27,10 +27,10 @@ import terrastore.client.mapping.JsonObjectDescriptor;
  * @author Sergio Bossa
  * @since 2.0
  */
-public class RESTEasyConnectionFactory implements ConnectionFactory {
+public class HTTPConnectionFactory implements ConnectionFactory {
 
     @Override
     public Connection makeConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException {
-        return new RESTEasyConnection(serverHost, descriptors);
+        return new HTTPConnection(serverHost, descriptors);
     }
 }

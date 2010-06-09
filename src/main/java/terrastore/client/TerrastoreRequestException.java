@@ -31,7 +31,7 @@ public class TerrastoreRequestException extends TerrastoreClientException {
 
     private final int status;
     private final String entity;
-
+    
     public TerrastoreRequestException(int status, String entity) {
         super();
         this.status = status;

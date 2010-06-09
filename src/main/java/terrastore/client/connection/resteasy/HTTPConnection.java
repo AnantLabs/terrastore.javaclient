@@ -38,7 +38,11 @@ import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
 import terrastore.client.connection.Connection;
+import terrastore.client.connection.EnsembleUnavailableException;
+import terrastore.client.connection.KeyNotFoundException;
 import terrastore.client.connection.TerrastoreConnectionException;
+import terrastore.client.connection.TerrastoreServerException;
+import terrastore.client.connection.UnsatisfiedConditionException;
 import terrastore.client.mapping.JsonBucketsReader;
 import terrastore.client.mapping.JsonObjectDescriptor;
 import terrastore.client.mapping.JsonObjectReader;
@@ -54,18 +58,18 @@ import terrastore.client.mapping.JsonValuesReader;
  * @author Sergio Bossa
  * @since 2.0
  */
-public class RESTEasyConnection implements Connection {
+public class HTTPConnection implements Connection {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
     //
     private final String serverHost;
     private final ClientRequestFactory requestFactory;
 
-    public RESTEasyConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) {
+    public HTTPConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) {
         this(serverHost, descriptors, new HttpClient());
     }
 
-    public RESTEasyConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
+    public HTTPConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
         this.serverHost = serverHost;
         this.requestFactory = new ClientRequestFactory(httpClient);
         try {
@@ -91,8 +95,8 @@ public class RESTEasyConnection implements Connection {
             ClientRequest request = getBucketRequest(bucket);
             ClientResponse<String> response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity());
-            }
+                throw getGeneralExceptionFor(response);
+            } 
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
@@ -109,7 +113,7 @@ public class RESTEasyConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return (Set<String>) response.getEntity(Set.class);
             } else {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -125,7 +129,7 @@ public class RESTEasyConnection implements Connection {
             ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
             ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -143,7 +147,7 @@ public class RESTEasyConnection implements Connection {
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getConditionalKeyExceptionFor(response, context);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -161,7 +165,7 @@ public class RESTEasyConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getKeyExceptionFor(response, context); 
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -181,7 +185,7 @@ public class RESTEasyConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getConditionalKeyExceptionFor(response, context);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -197,7 +201,7 @@ public class RESTEasyConnection implements Connection {
             ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
             ClientResponse response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -215,7 +219,7 @@ public class RESTEasyConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return (Values<T>) response.getEntity(Values.class, type);
             } else {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -245,7 +249,7 @@ public class RESTEasyConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return (Values<T>) response.getEntity(Values.class, type);
             } else {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -266,7 +270,7 @@ public class RESTEasyConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return (Values<T>) response.getEntity(Values.class, type);
             } else {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -284,7 +288,7 @@ public class RESTEasyConnection implements Connection {
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -302,7 +306,7 @@ public class RESTEasyConnection implements Connection {
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -345,4 +349,39 @@ public class RESTEasyConnection implements Connection {
     private TerrastoreClientException connectionException(String message, Exception e) {
         return new TerrastoreConnectionException(message, serverHost, e);
     }
+    
+    @SuppressWarnings("unchecked")
+    private TerrastoreClientException getKeyExceptionFor(ClientResponse response, KeyOperation.Context context) {
+        switch (response.getStatus()) {
+        case 404:
+            return new KeyNotFoundException("Key not found: '" + context.getKey() + "'");
+        default:
+            return getGeneralExceptionFor(response);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private TerrastoreClientException getConditionalKeyExceptionFor(ClientResponse response, ConditionalOperation.Context context) {
+        switch (response.getStatus()) {
+        case 404:
+            return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.getKey() + "'");
+        case 409:
+            return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satisfied.");
+        default:
+            return getGeneralExceptionFor(response);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private TerrastoreClientException getGeneralExceptionFor(ClientResponse response) {
+        switch (response.getStatus()) {
+        case 500:
+            return new TerrastoreServerException("Unexpected server error.");
+        case 503:
+            return new EnsembleUnavailableException("The server ensemble, or parts of the ensemble, is not not available.");
+        default:
+            return new TerrastoreRequestException(response.getStatus(), response.getEntity(String.class).toString());
+        }
+    }
+    
 }

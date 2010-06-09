@@ -30,12 +30,12 @@ import org.codehaus.jackson.map.SerializerProvider;
 import org.junit.Test;
 
 import terrastore.client.TerrastoreClient;
-import terrastore.client.connection.resteasy.RESTEasyConnectionFactory;
-import terrastore.client.legacy.TerrastoreClientWithCustomDescriptorTest.TestValue;
+import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
  * @author Sven Johansson
+ * @author Sergio Bossa
  * @date 8 may 2010
  * @since 2.0
  */
@@ -45,7 +45,7 @@ public class TerrastoreClientWithCustomDescriptorIntegrationTest {
 
     @Test
     public void testPutThenGetWithCustomDescriptor() throws Exception {
-        TerrastoreClient client = new TerrastoreClient("http://localhost:8080", new RESTEasyConnectionFactory(), Arrays.asList(new TestValueDescriptor()));
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory(), Arrays.asList(new TestValueDescriptor()));
 
         client.bucket("bucket").key("custom").put(CUSTOM_TEST_VALUE);
         TestValue value = client.bucket("bucket").key("custom").get(TestValue.class);
@@ -54,6 +54,38 @@ public class TerrastoreClientWithCustomDescriptorIntegrationTest {
 
         client.bucket("bucket").remove();
     }
+    
+    public static class TestValue {
+        
+        private String value;
+
+        public TestValue(String value) {
+            this.value = value;
+        }
+
+        protected TestValue() {
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        private void setValue(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            TestValue other = (TestValue) obj;
+            return this.value.equals(other.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+    }
+
 
     public static class TestValueDescriptor implements JsonObjectDescriptor<TestValue> {
 

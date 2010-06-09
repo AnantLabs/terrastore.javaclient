@@ -13,17 +13,21 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
 package terrastore.client.connection;
 
-import java.util.List;
-import terrastore.client.mapping.JsonObjectDescriptor;
+import terrastore.client.TerrastoreClientException;
 
 /**
  * @author Sven Johansson
- * @author Sergio Bossa
  * @since 2.0
  */
-public interface ConnectionFactory {
+public class EnsembleUnavailableException extends TerrastoreClientException {
 
-    Connection makeConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException;
+    private static final long serialVersionUID = 3152412705157825373L;
+
+    public EnsembleUnavailableException(String message) {
+        super(message);
+    }
+
 }

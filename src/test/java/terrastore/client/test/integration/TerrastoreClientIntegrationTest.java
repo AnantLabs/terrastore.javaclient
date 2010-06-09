@@ -15,7 +15,9 @@
  */
 package terrastore.client.test.integration;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,8 +32,10 @@ import terrastore.client.BucketOperation;
 import terrastore.client.KeyOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
-import terrastore.client.TerrastoreRequestException;
-import terrastore.client.connection.resteasy.RESTEasyConnectionFactory;
+import terrastore.client.connection.KeyNotFoundException;
+import terrastore.client.connection.TerrastoreConnectionException;
+import terrastore.client.connection.UnsatisfiedConditionException;
+import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 
 /**
  * @author Sergio Bossa
@@ -46,7 +50,7 @@ public class TerrastoreClientIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        client = new TerrastoreClient("http://localhost:8080", new RESTEasyConnectionFactory());
+        client = new TerrastoreClient("http://localhost:9080", new HTTPConnectionFactory());
     }
 
     @Test
@@ -117,7 +121,7 @@ public class TerrastoreClientIntegrationTest {
         bucket.remove();
     }
 
-    @Test(expected = TerrastoreRequestException.class)
+    @Test(expected = UnsatisfiedConditionException.class)
     public void testConditionallyPutValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
 
@@ -142,7 +146,7 @@ public class TerrastoreClientIntegrationTest {
         bucket.remove();
     }
 
-    @Test(expected = TerrastoreRequestException.class)
+    @Test(expected = UnsatisfiedConditionException.class)
     public void testConditionallyGetValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
 
@@ -155,7 +159,7 @@ public class TerrastoreClientIntegrationTest {
         }
     }
 
-    @Test(expected = TerrastoreRequestException.class)
+    @Test(expected = KeyNotFoundException.class)
     public void testGetValueNotFoundFromExistingBucketThrowsException() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
         bucket.key("value").put(TEST_VALUE_1);
@@ -167,7 +171,7 @@ public class TerrastoreClientIntegrationTest {
         }
     }
 
-    @Test(expected = TerrastoreRequestException.class)
+    @Test(expected = KeyNotFoundException.class)
     public void testGetValueNotFoundFromNonExistingBucketThrowsException() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
 
@@ -352,7 +356,13 @@ public class TerrastoreClientIntegrationTest {
 
         bucket.remove();
     }
-
+    
+    @Test(expected=TerrastoreConnectionException.class)
+    public void testUnableToReachServer() throws Exception {
+        client = new TerrastoreClient("localhost:9999", new HTTPConnectionFactory());
+        client.bucket("bucket").key("value").put(TEST_VALUE_1);
+    }
+    
     public static class TestValue {
 
         private String value;
