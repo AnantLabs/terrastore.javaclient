@@ -65,6 +65,8 @@ public class BackupOperation extends AbstractOperation {
     /**
      * Specifies the "secret key" used to validate/authenticate the backup
      * operation.
+     * The secret key serves as a safety-mechanism to guard against accidental
+     * execution of backup operations.
      * 
      * @param secretKey The "secret key" to be used in server communication.
      */
@@ -90,9 +92,6 @@ public class BackupOperation extends AbstractOperation {
     /**
      * Executes an import of bucket contents from the specified file on the
      * Terrastore server.
-     * 
-     * TODO: Does this operation restore state completely from the dumped file?
-     * Merge/replace?
      * 
      * @throws TerrastoreClientException If server communication fails, or the
      *             request is not valid - i.e, the secret key is rejected.

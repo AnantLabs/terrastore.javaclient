@@ -26,7 +26,7 @@ import terrastore.client.connection.Connection;
 public class ValuesOperation extends AbstractOperation {
 
     private final String bucket;
-    //
+
     private volatile int limit;
 
     ValuesOperation(Connection connection, String bucket) {
@@ -36,19 +36,34 @@ public class ValuesOperation extends AbstractOperation {
         }
         this.bucket = bucket;
     }
-
+    
     ValuesOperation(ValuesOperation other) {
         super(other.connection);
         this.bucket = other.bucket;
         this.limit = other.limit;
     }
 
+    /**
+     * Specifies a maximum limit of values to retrieve using this
+     * ValuesOperation. 
+     * 
+     * @param limit The maximum number of values to retrieve.
+     */
     public ValuesOperation limit(int limit) {
         ValuesOperation newInstance = new ValuesOperation(this);
         newInstance.limit = limit;
         return newInstance;
     }
 
+    /**
+     * Retrieves all values contained in the current bucket, or as many
+     * as permitted by the limit-method.
+     * 
+     * @param <T> The Java type to deserialize the values to.
+     * @param type The Java class to deserialize the values to.
+     * @return A Map of keys and values.
+     * @throws TerrastoreClientException if the operation fails for any reason.
+     */
     public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {
         return connection.getAllValues(new Context(), type);
     }

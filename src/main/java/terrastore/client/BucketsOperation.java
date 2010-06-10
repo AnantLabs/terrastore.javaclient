@@ -39,9 +39,10 @@ public class BucketsOperation extends AbstractOperation {
     }
 
     /**
-     * Retrieves the names of all buckets on the Terrastore server.
+     * Retrieves the names of all currently existing buckets on the 
+     * Terrastore server.
      * 
-     * @return A {@link Set} containing all bucket names.
+     * @return A {@link Set} containing all existing bucket names.
      * @throws TerrastoreClientException If server communication fails.
      */
     public Set<String> list() throws TerrastoreClientException {

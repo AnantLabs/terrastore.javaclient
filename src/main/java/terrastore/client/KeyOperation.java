@@ -89,7 +89,13 @@ public class KeyOperation extends AbstractOperation {
     public UpdateOperation update(String function) {
         return new UpdateOperation(connection, bucket, key, function);
     }
-
+    
+    /**
+     * Sets up a {@link ConditionalOperation} for the current key, that may
+     * be used to get or put values based on the fulfilment of a predicate.
+     * 
+     * @param predicate The predicate to serve as a condition.
+     */
     public ConditionalOperation conditional(String predicate) {
         return new ConditionalOperation(connection, bucket, key, predicate);
     }

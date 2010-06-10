@@ -20,6 +20,7 @@ import java.util.List;
 
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.ConnectionFactory;
+import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
@@ -41,7 +42,12 @@ public class TerrastoreClient {
 
     /**
      * Connects to the Terrastore server identified by the provided
-     * serverHost/url.
+     * serverHost/url using the type of connection provided by the
+     * ConnectionFactory.
+     * 
+     * @param serverHost The host name of the Terrastore server, i.e http://localhost:8080
+     * @param connectionFactory A ConnectionFactory instance, typically {@link HTTPConnectionFactory}
+     * @throws TerrastoreClientException If the provided arguments are invalid.
      */
     public TerrastoreClient(String serverHost, ConnectionFactory connectionFactory) throws TerrastoreClientException {
         this(serverHost, connectionFactory, new ArrayList<JsonObjectDescriptor<?>>(0));
@@ -49,8 +55,16 @@ public class TerrastoreClient {
 
     /**
      * Connects to the Terrastore server identified by the provided
-     * serverHost/url, and uses the provided {@link JsonObjectDescriptor}s to
-     * serialize/deserialize objects.
+     * serverHost/url using the type of connection provided by the
+     * ConnectionFactory.
+     * 
+     * A List of {@link JsonObjectDescriptor} is used to override the default
+     * behaviour of serialization/deserialization between java objects and JSON.
+     * 
+     * @param serverHost The host name of the Terrastore server, i.e http://localhost:8080
+     * @param connectionFactory A ConnectionFactory instance, typically {@link HTTPConnectionFactory}
+     * @param descriptors Serialization/deserialization instructions.
+     * @throws TerrastoreClientException If the provided arguments are invalid.
      */
     public TerrastoreClient(String serverHost, ConnectionFactory connectionFactory, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
         if (null == serverHost) {
@@ -61,7 +75,8 @@ public class TerrastoreClient {
     }
 
     /**
-     * Sets up a {@link BucketOperation} instance for the specified bucket name.
+     * Sets up a {@link BucketOperation} instance for access to a bucket of the provided name.
+     * If a bucket does not exist, it is implicitly created when written to. 
      * 
      * @param bucketName The name of the bucket to access.
      * @return A {@link BucketOperation} instance for the specified bucket name.
@@ -71,7 +86,8 @@ public class TerrastoreClient {
     }
 
     /**
-     * Sets up a {@link BucketsOperation}.
+     * Sets up a {@link BucketsOperation} for access to all currently existing
+     * buckets on the Terrastore server.
      * 
      * @return A {@link BucketsOperation}.
      */

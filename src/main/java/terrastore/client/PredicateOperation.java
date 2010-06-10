@@ -41,7 +41,14 @@ public class PredicateOperation extends AbstractOperation {
         this.predicate = predicate;
     }
 
-    
+    /**
+     * Retrieves a Map of all keys/values matching the specified predicate.
+     * 
+     * @param <T> The Java type to deserialize the values to.
+     * @param type The Java class to deserialize the values to.
+     * @return A Map of matching keys and values.
+     * @throws TerrastoreClientException if the request is invalid, ie due to an incorrect predicate syntax.
+     */
     public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {
         return connection.queryByPredicate(new Context(), type);
     }

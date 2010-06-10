@@ -29,12 +29,19 @@ public class Values<T> extends AbstractMap<String, T> {
     public Values(Map<String, T> values) {
         this.values = values;
     }
-
+    
+    /**
+     * Returns the value for the specified key, or null if no value exists
+     * for that key.
+     */
     @Override
     public T get(Object key) {
         return values.get(key);
     }
 
+    /**
+     * Returns a set of entries contained in this instance.
+     */
     @Override
     public Set<Entry<String, T>> entrySet() {
         return values.entrySet();

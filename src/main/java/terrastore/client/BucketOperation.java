@@ -70,14 +70,16 @@ public class BucketOperation extends AbstractOperation {
     }
 
     /**
-     * Sets up a {@link ValuesOperation} to act on all bucket values.
+     * Sets up a {@link ValuesOperation} to perform operations on all 
+     * existing values in this bucket.
      */
     public ValuesOperation values() {
         return new ValuesOperation(connection, bucket);
     }
 
     /**
-     * Sets up a {@link PredicateOperation} to evaluate a predicate on all bucket values.
+     * Sets up a {@link PredicateOperation} to evaluate a predicate on 
+     * all bucket values.
      */
     public PredicateOperation predicate(String predicate) {
         return new PredicateOperation(connection, bucket, predicate);
@@ -102,7 +104,7 @@ public class BucketOperation extends AbstractOperation {
      * server, configured default comparator.
      * 
      * The default comparator is <code>lexical-asc</code>, unless default
-     * configuration has been overriden.
+     * configuration has been overridden in the server configuration.
      * 
      * @return A RangeOperation with the default comparator.
      */
@@ -111,7 +113,8 @@ public class BucketOperation extends AbstractOperation {
     }
 
     /**
-     * Sets up a {@link BackupOperation} for this bucket.
+     * Sets up a {@link BackupOperation} for this bucket, used
+     * for importing or exporting snapshots of bucket contents.
      * 
      * @return A {@link BackupOperation} for this bucket.
      */

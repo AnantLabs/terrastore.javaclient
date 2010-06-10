@@ -35,10 +35,27 @@ public class ConditionalOperation extends AbstractOperation {
         this.predicate = predicate;
     }
 
+    /**
+     * Puts a value under the current key if, and only if the predicate
+     * condition is satisfied.
+     * 
+     * @param <T> The Java type of the object to put.
+     * @param value The value to put
+     * @throws TerrastoreClientException if the operation fails, ie due to an invalid predicate.
+     */
     public <T> void put(T value) throws TerrastoreClientException {
         connection.putValue(new Context(), value);
     }
 
+    /**
+     * Retrieves the value of the current key if, and only if the predicate
+     * condition is satisfied.
+     * 
+     * @param <T> The Java type of the object to retrieve.
+     * @param type The Java class of the object to retrieve.
+     * @return The value stored under the current key, if the condition is satisfied.
+     * @throws TerrastoreClientException if the operation fails, ie due to an invalid predicate.
+     */
     public <T> T get(Class<T> type) throws TerrastoreClientException {
         return connection.getValue(new Context(), type);
     }
