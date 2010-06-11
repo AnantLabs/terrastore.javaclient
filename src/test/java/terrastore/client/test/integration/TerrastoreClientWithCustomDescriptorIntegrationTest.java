@@ -35,9 +35,7 @@ import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
  * @author Sven Johansson
- * @author Sergio Bossa
- * @date 8 may 2010
- * @since 2.0
+ * @author Sergio Bossa  
  */
 public class TerrastoreClientWithCustomDescriptorIntegrationTest {
 

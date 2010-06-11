@@ -18,16 +18,16 @@ package terrastore.client;
 import terrastore.client.connection.Connection;
 
 /**
- * BucketOperations serves as intermediaries for server operations pertaining to
- * Terrastore buckets, such as adding or removing buckets, or reading
- * keys/values for buckets.
+ * BucketOperation serves as intermediaries for server operations pertaining to
+ * Terrastore buckets, such as removing buckets, or reading
+ * keys/values from buckets.
  * 
  * The {@link BucketOperation} is the root operation for all operations that are
  * performed on a specific bucket.
  * 
  * @author Sven Johansson
  * @author Sergio Bossa
- * @since 2.0
+ *  
  */
 public class BucketOperation extends AbstractOperation {
 

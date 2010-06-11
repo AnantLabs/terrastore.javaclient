@@ -20,7 +20,7 @@ import terrastore.client.TerrastoreClientException;
 
 /**
  * @author Sven Johansson
- * @since 2.0
+ *  
  */
 public class UnsatisfiedConditionException extends TerrastoreClientException {
 

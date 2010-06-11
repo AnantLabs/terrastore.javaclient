@@ -18,12 +18,9 @@ package terrastore.client;
 import terrastore.client.connection.Connection;
 
 /**
- * {@link BackupOperation}s are used for reading/writing a complete backup of a
- * specific buckets contents to/from disk.
- * 
  * @author Sven Johansson
  * @author Sergio Bossa
- * @since 2.0
+ *  
  */
 public class BackupOperation extends AbstractOperation {
 

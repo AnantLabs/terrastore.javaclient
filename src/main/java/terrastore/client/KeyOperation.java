@@ -18,12 +18,9 @@ package terrastore.client;
 import terrastore.client.connection.Connection;
 
 /**
- * KeyOperations serves as the root command for all operations to be directly
- * performed on keys, such as reading/writing values.
- * 
  * @author Sven Johansson
  * @author Sergio Bossa
- * @since 2.0
+ *  
  */
 public class KeyOperation extends AbstractOperation {
 

@@ -18,21 +18,14 @@ package terrastore.client;
 import terrastore.client.connection.Connection;
 
 /**
- * A RangeOperation is used to retrieve keys/vales within a specified range.
- * 
- * The RangeOperation requires a specified start of the range. The end of the range
- * is optional. If no end key is specified, all elements starting from start key
- * and up to the limit will be selected.
- * 
  * @author Sven Johansson
  * @author Sergio Bossa
- * @since 2.0
+ *  
  */
 public class RangeOperation extends AbstractOperation {
 
     private final String bucket;
     private final String comparator;
-    //
     private volatile String fromKey;
     private volatile String toKey;
     private volatile String predicate;

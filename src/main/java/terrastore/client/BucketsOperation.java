@@ -20,12 +20,11 @@ import java.util.Set;
 import terrastore.client.connection.Connection;
 
 /**
- * BucketsOperation operation pertains to operations on all buckets on the
+ * BucketsOperation pertains to operations on all buckets on the
  * Terrastore server.
  * 
  * @author Sven Johansson
- * @date 24 apr 2010
- * @since 2.0
+ *  
  */
 public class BucketsOperation extends AbstractOperation {
 

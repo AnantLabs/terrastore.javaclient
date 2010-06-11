@@ -22,7 +22,7 @@ import terrastore.client.connection.Connection;
 /**
  * @author Sven Johansson
  * @author Sergio Bossa
- * @since 2.0
+ *  
  */
 public class PredicateOperation extends AbstractOperation {
 

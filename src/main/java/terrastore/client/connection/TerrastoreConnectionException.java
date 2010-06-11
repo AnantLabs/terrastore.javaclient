@@ -25,7 +25,7 @@ import terrastore.client.TerrastoreClientException;
  * 
  * @author Sven Johansson
  * @date 24 apr 2010
- * @since 2.0
+ *  
  */
 public class TerrastoreConnectionException extends TerrastoreClientException {
 

@@ -24,7 +24,7 @@ package terrastore.client;
  * 
  * @author Sven Johansson
  * @date 24 apr 2010
- * @since 2.0
+ *  
  */
 public abstract class TerrastoreClientException extends RuntimeException {
 
