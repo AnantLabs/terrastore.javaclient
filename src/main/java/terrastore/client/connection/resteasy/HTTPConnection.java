@@ -23,6 +23,7 @@ import java.util.Set;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
@@ -66,7 +67,7 @@ public class HTTPConnection implements Connection {
     private final ClientRequestFactory requestFactory;
 
     public HTTPConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) {
-        this(serverHost, descriptors, new HttpClient());
+        this(serverHost, descriptors, new HttpClient(new MultiThreadedHttpConnectionManager()));
     }
 
     public HTTPConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
