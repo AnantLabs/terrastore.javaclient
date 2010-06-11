@@ -130,7 +130,6 @@ public class TerrastoreClientIntegrationTest {
         try {
             bucket.key("key1").conditional("jxpath:/notFound").put(TEST_VALUE_2);
         } finally {
-            assertEquals(TEST_VALUE_1, bucket.key("key1").get(TestValue.class));
             bucket.remove();
         }
     }
