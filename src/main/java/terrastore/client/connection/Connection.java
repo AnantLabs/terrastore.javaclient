@@ -106,7 +106,7 @@ public interface Connection {
     void importBackup(BackupOperation.Context context) throws TerrastoreClientException;
 
     /**
-     * Execute an atomic update.
+     * Execute an atomic update and returns the updated value.
      */
-    void executeUpdate(UpdateOperation.Context context) throws TerrastoreClientException;
+    <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException;
 }

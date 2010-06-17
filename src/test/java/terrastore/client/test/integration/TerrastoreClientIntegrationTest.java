@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -330,7 +331,7 @@ public class TerrastoreClientIntegrationTest {
         KeyOperation key = client.bucket("bucket").key("key1");
         key.put(TEST_VALUE_1);
 
-        key.update("replace").timeOut(1000L).parameters(parameters).execute();
+        assertEquals(TEST_VALUE_2, key.update("replace").timeOut(1000L).parameters(getAsMap(TEST_VALUE_2)).executeAndGet(TestValue.class));
 
         client.bucket("bucket").remove();
     }
@@ -360,6 +361,11 @@ public class TerrastoreClientIntegrationTest {
     public void testUnableToReachServer() throws Exception {
         client = new TerrastoreClient("localhost:9999", new HTTPConnectionFactory());
         client.bucket("bucket").key("value").put(TEST_VALUE_1);
+    }
+
+    private Map getAsMap(TestValue value) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.<Map>readValue(mapper.writeValueAsString(value), Map.class);
     }
     
     public static class TestValue {

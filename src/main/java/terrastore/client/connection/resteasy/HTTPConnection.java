@@ -97,7 +97,7 @@ public class HTTPConnection implements Connection {
             ClientResponse<String> response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
-            } 
+            }
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
@@ -166,7 +166,7 @@ public class HTTPConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
-                throw getKeyExceptionFor(response, context); 
+                throw getKeyExceptionFor(response, context);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -318,15 +318,17 @@ public class HTTPConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void executeUpdate(UpdateOperation.Context context) throws TerrastoreClientException {
+    public <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException {
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).path("update").queryParam("function", context.
                     getFunction()).queryParam("timeout", context.getTimeOut()).build().toString();
 
             ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, context.getParameters()).post();
-            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw new TerrastoreRequestException(response.getResponseStatus().getStatusCode(), response.getEntity(String.class).toString());
+            ClientResponse<T> response = request.body(JSON_CONTENT_TYPE, context.getParameters()).post();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(type);
+            } else {
+                throw getGeneralExceptionFor(response);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -350,39 +352,39 @@ public class HTTPConnection implements Connection {
     private TerrastoreClientException connectionException(String message, Exception e) {
         return new TerrastoreConnectionException(message, serverHost, e);
     }
-    
+
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getKeyExceptionFor(ClientResponse response, KeyOperation.Context context) {
         switch (response.getStatus()) {
-        case 404:
-            return new KeyNotFoundException("Key not found: '" + context.getKey() + "'");
-        default:
-            return getGeneralExceptionFor(response);
+            case 404:
+                return new KeyNotFoundException("Key not found: '" + context.getKey() + "'");
+            default:
+                return getGeneralExceptionFor(response);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getConditionalKeyExceptionFor(ClientResponse response, ConditionalOperation.Context context) {
         switch (response.getStatus()) {
-        case 404:
-            return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.getKey() + "'");
-        case 409:
-            return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satisfied.");
-        default:
-            return getGeneralExceptionFor(response);
+            case 404:
+                return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.
+                        getKey() + "'");
+            case 409:
+                return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satisfied.");
+            default:
+                return getGeneralExceptionFor(response);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getGeneralExceptionFor(ClientResponse response) {
         switch (response.getStatus()) {
-        case 500:
-            return new TerrastoreServerException("Unexpected server error.");
-        case 503:
-            return new ClusterUnavailableException("The server cluster, or parts of the cluster, is not not available.");
-        default:
-            return new TerrastoreRequestException(response.getStatus(), response.getEntity(String.class).toString());
+            case 500:
+                return new TerrastoreServerException("Unexpected server error.");
+            case 503:
+                return new ClusterUnavailableException("The server cluster, or parts of the cluster, is not not available.");
+            default:
+                return new TerrastoreRequestException(response.getStatus(), response.getEntity(String.class).toString());
         }
     }
-    
 }

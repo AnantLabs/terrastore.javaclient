@@ -70,7 +70,8 @@ public class UpdateOperation extends AbstractOperation {
     }
 
     /**
-     * Executes this update operation.
+     * Executes this update operation and returns the updated document, as an instance of the specified
+     * Java type.
      * 
      * The server side function must not last more that the given timeout
      * (expressed in milliseconds): otherwise, an exception is thrown and update
@@ -78,11 +79,14 @@ public class UpdateOperation extends AbstractOperation {
      * That's because the server side update operation locks the updated value
      * for its duration (in order to provide per-record ACID properties): use of
      * timeouts minimizes livelocks and starvations.
-     * 
+     *
+     * @param <T> The Java type for the returned document.
+     * @param type The Java class for the returned document.
+     * @return The updated document, as an instance of <T>/type
      * @throws TerrastoreClientException
      */
-    public void execute() throws TerrastoreClientException {
-        connection.executeUpdate(new Context());
+    public <T> T executeAndGet(Class<T> type) throws TerrastoreClientException {
+        return connection.executeUpdate(new Context(), type);
     }
 
     public class Context {
