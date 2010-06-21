@@ -148,7 +148,7 @@ public class HTTPConnection implements Connection {
             ClientRequest request = requestFactory.createRequest(requestUri);
             ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw getConditionalKeyExceptionFor(response, context);
+                throw getExceptionForConditionalOperation(response, context);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -166,7 +166,7 @@ public class HTTPConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
-                throw getKeyExceptionFor(response, context);
+                throw getExceptionForKeyOperation(response, context);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -186,7 +186,7 @@ public class HTTPConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
-                throw getConditionalKeyExceptionFor(response, context);
+                throw getExceptionForConditionalOperation(response, context);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -328,7 +328,7 @@ public class HTTPConnection implements Connection {
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
-                throw getGeneralExceptionFor(response);
+                throw getExceptionForUpdateOperation(response, context);
             }
         } catch (TerrastoreClientException e) {
             throw e;
@@ -354,7 +354,7 @@ public class HTTPConnection implements Connection {
     }
 
     @SuppressWarnings("unchecked")
-    private TerrastoreClientException getKeyExceptionFor(ClientResponse response, KeyOperation.Context context) {
+    private TerrastoreClientException getExceptionForKeyOperation(ClientResponse response, KeyOperation.Context context) {
         switch (response.getStatus()) {
             case 404:
                 return new KeyNotFoundException("Key not found: '" + context.getKey() + "'");
@@ -364,13 +364,23 @@ public class HTTPConnection implements Connection {
     }
 
     @SuppressWarnings("unchecked")
-    private TerrastoreClientException getConditionalKeyExceptionFor(ClientResponse response, ConditionalOperation.Context context) {
+    private TerrastoreClientException getExceptionForConditionalOperation(ClientResponse response, ConditionalOperation.Context context) {
         switch (response.getStatus()) {
             case 404:
                 return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.
                         getKey() + "'");
             case 409:
                 return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satisfied.");
+            default:
+                return getGeneralExceptionFor(response);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private TerrastoreClientException getExceptionForUpdateOperation(ClientResponse response, UpdateOperation.Context context) {
+        switch (response.getStatus()) {
+            case 404:
+                return new KeyNotFoundException("Key not found: '" + context.getKey() + "'");
             default:
                 return getGeneralExceptionFor(response);
         }
