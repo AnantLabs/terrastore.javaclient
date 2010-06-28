@@ -47,6 +47,7 @@ public class TerrastoreClientIntegrationTest {
     private static final TestValue TEST_VALUE_1 = new TestValue("value_1");
     private static final TestValue TEST_VALUE_2 = new TestValue("value_2");
     private static final TestValue TEST_VALUE_3 = new TestValue("value_3");
+    private static final TestValue TEST_VALUE_NULL = new TestValue(null);
     private TerrastoreClient client;
 
     @Before
@@ -337,6 +338,21 @@ public class TerrastoreClientIntegrationTest {
     }
 
     @Test
+    public void testExecuteUpdateWithNoParameters() throws Exception {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        String param1 = "param1";
+        String value1 = "value1";
+        parameters.put(param1, value1);
+
+        KeyOperation key = client.bucket("bucket").key("key1");
+        key.put(TEST_VALUE_1);
+
+        assertEquals(TEST_VALUE_NULL, key.update("replace").timeOut(1000L).executeAndGet(TestValue.class));
+
+        client.bucket("bucket").remove();
+    }
+
+    @Test
     public void testExportImportBackup() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
 
@@ -391,12 +407,12 @@ public class TerrastoreClientIntegrationTest {
         @Override
         public boolean equals(Object obj) {
             TestValue other = (TestValue) obj;
-            return this.value.equals(other.value);
+            return value != null ? this.value.equals(other.value) : true;
         }
 
         @Override
         public int hashCode() {
-            return value.hashCode();
+            return value != null ? value.hashCode() : 0;
         }
     }
 }

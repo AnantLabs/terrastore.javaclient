@@ -15,6 +15,7 @@
  */
 package terrastore.client.connection.resteasy;
 
+import java.util.HashMap;
 import static org.jboss.resteasy.plugins.providers.RegisterBuiltin.registerProviders;
 
 import java.util.List;
@@ -324,7 +325,8 @@ public class HTTPConnection implements Connection {
                     getFunction()).queryParam("timeout", context.getTimeOut()).build().toString();
 
             ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse<T> response = request.body(JSON_CONTENT_TYPE, context.getParameters()).post();
+            Map parameters = context.getParameters() != null ? context.getParameters() : new HashMap();
+            ClientResponse<T> response = request.body(JSON_CONTENT_TYPE, parameters).post();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
