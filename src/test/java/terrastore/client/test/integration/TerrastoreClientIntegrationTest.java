@@ -48,6 +48,10 @@ public class TerrastoreClientIntegrationTest {
     private static final TestValue TEST_VALUE_2 = new TestValue("value_2");
     private static final TestValue TEST_VALUE_3 = new TestValue("value_3");
     private static final TestValue TEST_VALUE_NULL = new TestValue(null);
+    
+    private static final TupleTestValue TUPLE_TEST_VALUE_1 = new TupleTestValue("value_1-1", "value_1-2");
+    private static final TupleTestValue TUPLE_TEST_VALUE_2 = new TupleTestValue("value_2-1", "value_1-2");
+    
     private TerrastoreClient client;
 
     @Before
@@ -323,7 +327,7 @@ public class TerrastoreClientIntegrationTest {
     }
 
     @Test
-    public void testExecuteUpdate() throws Exception {
+    public void testExecuteReplaceUpdate() throws Exception {
         Map<String, Object> parameters = new HashMap<String, Object>();
         String param1 = "param1";
         String value1 = "value1";
@@ -338,17 +342,35 @@ public class TerrastoreClientIntegrationTest {
     }
 
     @Test
-    public void testExecuteUpdateWithNoParameters() throws Exception {
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        String param1 = "param1";
-        String value1 = "value1";
-        parameters.put(param1, value1);
-
+    public void testExecuteReplaceUpdateWithNoParameters() throws Exception {
         KeyOperation key = client.bucket("bucket").key("key1");
         key.put(TEST_VALUE_1);
 
         assertEquals(TEST_VALUE_NULL, key.update("replace").timeOut(1000L).executeAndGet(TestValue.class));
 
+        client.bucket("bucket").remove();
+    }
+    
+    @Test
+    public void testExecuteMergeUpdate() throws Exception {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("value1", "value_2-1");
+        
+        KeyOperation key = client.bucket("bucket").key("key1");
+        key.put(TUPLE_TEST_VALUE_1);
+        
+        assertEquals(TUPLE_TEST_VALUE_2, key.update("merge").parameters(parameters).timeOut(1000L).executeAndGet(TupleTestValue.class));
+        
+        client.bucket("bucket").remove();
+    }
+    
+    @Test
+    public void testExecuteMergeUpdateWithNoParameters() throws Exception {
+        KeyOperation key = client.bucket("bucket").key("key1");
+        key.put(TUPLE_TEST_VALUE_1);
+        
+        assertEquals(TUPLE_TEST_VALUE_1, key.update("merge").timeOut(1000L).executeAndGet(TupleTestValue.class));
+        
         client.bucket("bucket").remove();
     }
 
@@ -414,5 +436,73 @@ public class TerrastoreClientIntegrationTest {
         public int hashCode() {
             return value != null ? value.hashCode() : 0;
         }
+    }
+    
+    public static class TupleTestValue {
+        
+        private String value1;
+        private String value2;
+        
+        public TupleTestValue(String value1, String value2) {
+            this.value1 = value1;
+            this.value2 = value2;
+        }
+        
+        protected TupleTestValue() {
+        }
+
+        public String getValue1() {
+            return value1;
+        }
+
+        @SuppressWarnings("unused")
+        private void setValue1(String value1) {
+            this.value1 = value1;
+        }
+
+        public String getValue2() {
+            return value2;
+        }
+
+        @SuppressWarnings("unused")
+        private void setValue2(String value2) {
+            this.value2 = value2;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result
+                    + ((value1 == null) ? 0 : value1.hashCode());
+            result = prime * result
+                    + ((value2 == null) ? 0 : value2.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            TupleTestValue other = (TupleTestValue) obj;
+            if (value1 == null) {
+                if (other.value1 != null)
+                    return false;
+            } else if (!value1.equals(other.value1))
+                return false;
+            if (value2 == null) {
+                if (other.value2 != null)
+                    return false;
+            } else if (!value2.equals(other.value2))
+                return false;
+            return true;
+        }
+        
+        
+        
     }
 }
