@@ -15,6 +15,7 @@
  */
 package terrastore.client;
 
+import java.util.Collections;
 import java.util.Map;
 import terrastore.client.connection.Connection;
 
@@ -29,7 +30,7 @@ public class UpdateOperation extends AbstractOperation {
     private final String key;
     private final String function;
     //
-    private volatile Map<String, Object> parameters;
+    private volatile Map<String, Object> parameters = Collections.emptyMap();
     private volatile long timeOut;
 
     public UpdateOperation(Connection connection, String bucket, String key, String function) {
