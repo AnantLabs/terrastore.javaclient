@@ -373,6 +373,19 @@ public class TerrastoreClientIntegrationTest {
         
         client.bucket("bucket").remove();
     }
+    
+    @Test
+    public void testExecuteAtomicCounterUpdate() throws Exception {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("value", "15");
+        
+        KeyOperation key = client.bucket("bucket").key("key1");
+        key.put(new TestValue("10"));
+        
+        assertEquals(new TestValue("25"), key.update("atomiccounter").timeOut(1000L).parameters(parameters).executeAndGet(TestValue.class));
+        
+        client.bucket("bucket").remove();
+    }
 
     @Test
     public void testExportImportBackup() throws Exception {
@@ -435,6 +448,11 @@ public class TerrastoreClientIntegrationTest {
         @Override
         public int hashCode() {
             return value != null ? value.hashCode() : 0;
+        }
+
+        @Override
+        public String toString() {
+            return "TestValue [value=" + value + "]";
         }
     }
     
