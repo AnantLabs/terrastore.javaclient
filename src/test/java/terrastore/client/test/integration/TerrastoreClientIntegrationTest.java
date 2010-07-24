@@ -388,6 +388,23 @@ public class TerrastoreClientIntegrationTest {
     }
 
     @Test
+    public void testExecuteJsFunction() throws Exception {
+        Map<String, Object> params = new HashMap<String, Object>();
+        String f = "function update(key, value, params) {"
+                + "   if(value['value'] == 'value_1') value['value'] = 'value_2';"
+                + "   return value;"
+                + "}";
+        params.put("update", f);
+
+        KeyOperation key = client.bucket("bucket").key("key1");
+        key.put(TEST_VALUE_1);
+
+        assertEquals(TEST_VALUE_2, key.update("js").timeOut(1000L).parameters(params).executeAndGet(TestValue.class));
+
+        client.bucket("bucket").remove();
+    }
+
+    @Test
     public void testExportImportBackup() throws Exception {
         BucketOperation bucket = client.bucket("bucket");
 
