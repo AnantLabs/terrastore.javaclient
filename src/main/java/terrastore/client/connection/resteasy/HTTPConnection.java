@@ -27,6 +27,7 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
+import org.jboss.resteasy.client.core.executors.ApacheHttpClientExecutor;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import terrastore.client.BackupOperation;
 import terrastore.client.ConditionalOperation;
@@ -71,10 +72,10 @@ public class HTTPConnection implements Connection {
     }
 
     public HTTPConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
+        ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
         this.serverHost = serverHost;
-        this.requestFactory = new ClientRequestFactory(httpClient);
+        this.requestFactory = new ClientRequestFactory(new ApacheHttpClientExecutor(httpClient), providerFactory);
         try {
-            ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
             // Registration order matters: JsonObjectWriter must come last because writes all:
             providerFactory.addMessageBodyWriter(new JsonParametersWriter());
             providerFactory.addMessageBodyWriter(new JsonObjectWriter(descriptors));
