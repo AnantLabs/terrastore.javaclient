@@ -382,7 +382,7 @@ public class TerrastoreClientIntegrationTest {
         KeyOperation key = client.bucket("bucket").key("key1");
         key.put(new TestValue("10"));
         
-        assertEquals(new TestValue("25"), key.update("atomiccounter").timeOut(1000L).parameters(parameters).executeAndGet(TestValue.class));
+        assertEquals(new TestValue("25"), key.update("counter").timeOut(1000L).parameters(parameters).executeAndGet(TestValue.class));
         
         client.bucket("bucket").remove();
     }
