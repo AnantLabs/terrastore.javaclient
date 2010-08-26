@@ -41,6 +41,7 @@ import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.ClusterUnavailableException;
+import terrastore.client.connection.HostManager;
 import terrastore.client.connection.KeyNotFoundException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.TerrastoreServerException;
@@ -64,16 +65,16 @@ public class HTTPConnection implements Connection {
 
     private static final String JSON_CONTENT_TYPE = "application/json";
     //
-    private final String serverHost;
+    private final HostManager hostManager;
     private final ClientRequestFactory requestFactory;
 
-    public HTTPConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) {
-        this(serverHost, descriptors, new HttpClient(new MultiThreadedHttpConnectionManager()));
+    public HTTPConnection(HostManager hostManager, List<? extends JsonObjectDescriptor<?>> descriptors) {
+        this(hostManager, descriptors, new HttpClient(new MultiThreadedHttpConnectionManager()));
     }
 
-    public HTTPConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
+    public HTTPConnection(HostManager hostManager, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
         ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
-        this.serverHost = serverHost;
+        this.hostManager = hostManager;
         this.requestFactory = new ClientRequestFactory(new ApacheHttpClientExecutor(httpClient), providerFactory);
         try {
             // Registration order matters: JsonObjectWriter must come last because writes all:
@@ -93,8 +94,9 @@ public class HTTPConnection implements Connection {
     @SuppressWarnings("unchecked")
     @Override
     public void removeBucket(String bucket) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
-            ClientRequest request = getBucketRequest(bucket);
+            ClientRequest request = getBucketRequest(serverHost, bucket);
             ClientResponse<String> response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
@@ -102,13 +104,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to remove bucket", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Set<String> getBuckets() throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             ClientRequest request = requestFactory.createRequest(serverHost);
             ClientResponse response = request.accept(JSON_CONTENT_TYPE).get();
@@ -120,15 +123,16 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to list available buckets", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> void putValue(KeyOperation.Context context, T value) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
-            ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
+            ClientRequest request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
             ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
@@ -136,13 +140,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to put value", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> void putValue(ConditionalOperation.Context context, T value) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).queryParam("predicate", context.getPredicate()).
                     build().toString();
@@ -154,15 +159,16 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to put value", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getValue(KeyOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
-            ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
+            ClientRequest request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
             ClientResponse<T> response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
@@ -172,13 +178,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to get value", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getValue(ConditionalOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).queryParam("predicate", context.getPredicate()).
                     build().toString();
@@ -192,15 +199,16 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to get value", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void removeValue(KeyOperation.Context context) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
-            ClientRequest request = getKeyRequest(context.getBucket(), context.getKey());
+            ClientRequest request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
             ClientResponse response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
@@ -208,15 +216,16 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to remove value", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> Map<String, T> getAllValues(ValuesOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
-            ClientRequest request = getBucketRequest(context.getBucket()).queryParameter("limit", context.getLimit());
+            ClientRequest request = getBucketRequest(serverHost, context.getBucket()).queryParameter("limit", context.getLimit());
             ClientResponse response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return (Values<T>) response.getEntity(Values.class, type);
@@ -226,13 +235,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to list values", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> Values<T> queryByRange(RangeOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
                     queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
@@ -256,13 +266,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to perform query", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> Values<T> queryByPredicate(PredicateOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("predicate").queryParam("predicate", context.getPredicate()).build().
                     toString();
@@ -277,13 +288,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to perform query", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void exportBackup(BackupOperation.Context context) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("export").queryParam("destination", context.getFile()).
                     queryParam("secret", context.getSecretKey()).build().toString();
@@ -295,13 +307,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to export backup", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void importBackup(BackupOperation.Context context) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("import").queryParam("source", context.getFile()).queryParam("secret", context.
                     getSecretKey()).build().toString();
@@ -313,13 +326,14 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to import backup", e);
+            throw connectionException(serverHost, e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).path("update").queryParam("function", context.
                     getFunction()).queryParam("timeout", context.getTimeOut()).build().toString();
@@ -334,24 +348,25 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException("Unable to perform update", e);
+            throw connectionException(serverHost, e);
         }
     }
 
-    private ClientRequest getKeyRequest(String bucket, String key) {
+    private ClientRequest getKeyRequest(String serverHost, String bucket, String key) {
         String requestUri = UriBuilder.fromUri(serverHost).path(bucket).path(key).build().toString();
         ClientRequest request = requestFactory.createRequest(requestUri);
         return request.accept(JSON_CONTENT_TYPE);
     }
 
-    private ClientRequest getBucketRequest(String bucket) {
+    private ClientRequest getBucketRequest(String serverHost, String bucket) {
         String requestUri = UriBuilder.fromUri(serverHost).path(bucket).build().toString();
         ClientRequest request = requestFactory.createRequest(requestUri);
         return request.accept(JSON_CONTENT_TYPE);
     }
 
-    private TerrastoreClientException connectionException(String message, Exception e) {
-        return new TerrastoreConnectionException(message, serverHost, e);
+    private TerrastoreClientException connectionException(String serverHost, Exception e) {
+        hostManager.suspect(serverHost);
+        return new TerrastoreConnectionException("Unable to connect to: " + serverHost, serverHost, e);
     }
 
     @SuppressWarnings("unchecked")

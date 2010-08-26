@@ -20,15 +20,19 @@ import java.util.List;
 
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.ConnectionFactory;
+import terrastore.client.connection.HostManager;
+import terrastore.client.connection.SingleHostManager;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
  * Terrastore Client for communicating with a Terrastore server cluster.
  * 
- * You only need to know and connect to a single Terrastore server, as the server
+ * AT the bare minimum, you only need to know and connect to a single Terrastore server, as the server
  * itself will manage requests and route them to other servers in the cluster,
- * if needed.
+ * if needed.<br>
+ * However, you can provide a more advances server selection strategy by providing a proper
+ * {@link terrastore.client.connection.HostManager} implementation.
  * 
  * Terrastore Client instances are immutable.
  * 
@@ -71,7 +75,35 @@ public class TerrastoreClient {
             throw new IllegalArgumentException(
                     "Cannot establish connection to null server URL");
         }
-        this.connection = connectionFactory.makeConnection(serverHost, descriptors);
+        this.connection = connectionFactory.makeConnection(new SingleHostManager(serverHost), descriptors);
+    }
+    
+    /**
+     * Connects to the Terrastore server(s) provided by the HostManager,
+     * using the type of connection provided by the ConnectionFactory.
+     * 
+     * @param hostManager The HostManager instance providing the host(s) to connect to.
+     * @param connectionFactory A ConnectionFactory instance, typically {@link HTTPConnectionFactory}
+     * @throws TerrastoreClientException If the provided arguments are invalid.
+     */
+    public TerrastoreClient(HostManager hostManager, ConnectionFactory connectionFactory) throws TerrastoreClientException {
+        this(hostManager, connectionFactory, new ArrayList<JsonObjectDescriptor<?>>(0));
+    }
+
+    /**
+     * Connects to the Terrastore server(s) provided by the HostManager,
+     * using the type of connection provided by the ConnectionFactory.
+     *
+     * A List of {@link JsonObjectDescriptor} is used to override the default
+     * behaviour of serialization/deserialization between java objects and JSON.
+     *
+     * @param hostManager The HostManager instance providing the host(s) to connect to.
+     * @param connectionFactory A ConnectionFactory instance, typically {@link HTTPConnectionFactory}
+     * @param descriptors Serialization/deserialization instructions.
+     * @throws TerrastoreClientException If the provided arguments are invalid.
+     */
+    public TerrastoreClient(HostManager hostManager, ConnectionFactory connectionFactory, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
+        this.connection = connectionFactory.makeConnection(hostManager, descriptors);
     }
 
     /**

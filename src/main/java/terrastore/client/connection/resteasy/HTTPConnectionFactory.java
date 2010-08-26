@@ -19,6 +19,7 @@ import java.util.List;
 
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.ConnectionFactory;
+import terrastore.client.connection.HostManager;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
@@ -30,7 +31,7 @@ import terrastore.client.mapping.JsonObjectDescriptor;
 public class HTTPConnectionFactory implements ConnectionFactory {
 
     @Override
-    public Connection makeConnection(String serverHost, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException {
-        return new HTTPConnection(serverHost, descriptors);
+    public Connection makeConnection(HostManager hostManager, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException {
+        return new HTTPConnection(hostManager, descriptors);
     }
 }
