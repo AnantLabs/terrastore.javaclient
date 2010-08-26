@@ -40,16 +40,13 @@ public class OrderedHostManager implements HostManager {
 
     @Override
     public synchronized void suspect(String suspected) {
-        boolean found = false;
-        for (String candidate : hosts) {
-            if (candidate.equals(suspected)) {
-                found = true;
-                break;
-            }
+        if (hosts.contains(suspected)) {
+            moveToEndOfList(suspected);
         }
-        if (found) {
-            hosts.remove(suspected);
-            hosts.add(suspected);
-        }
+    }
+
+    private void moveToEndOfList(String suspected) {
+        hosts.remove(suspected);
+        hosts.add(suspected);
     }
 }
