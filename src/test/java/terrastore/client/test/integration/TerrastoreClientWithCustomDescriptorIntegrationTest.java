@@ -50,7 +50,7 @@ public class TerrastoreClientWithCustomDescriptorIntegrationTest {
         assertNotNull(value);
         assertEquals(CUSTOM_TEST_VALUE, value);
 
-        client.bucket("bucket").remove();
+        client.bucket("bucket").clear();
     }
     
     public static class TestValue {

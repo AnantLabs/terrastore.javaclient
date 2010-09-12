@@ -69,9 +69,9 @@ public class TerrastoreClientIntegrationTest {
 
     @After
     public void tearDown() throws Exception {
-        bucket.remove();
-        bucket1.remove();
-        bucket2.remove();
+        bucket.clear();
+        bucket1.clear();
+        bucket2.clear();
         Thread.sleep(1000);
     }
 
@@ -93,8 +93,8 @@ public class TerrastoreClientIntegrationTest {
     }
 
     @Test
-    public void testRemoveNonExistantBucket() throws Exception {
-        client.bucket("not_found").remove();
+    public void testClearNonExistantBucket() throws Exception {
+        client.bucket("not_found").clear();
     }
 
     @Test
@@ -373,7 +373,7 @@ public class TerrastoreClientIntegrationTest {
 
         bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeExport();
 
-        bucket.remove();
+        bucket.clear();
         assertEquals(0, bucket.values().get(TestValue.class).size());
 
         bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeImport();

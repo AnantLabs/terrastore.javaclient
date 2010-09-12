@@ -49,14 +49,12 @@ public class BucketOperation extends AbstractOperation {
     }
 
     /**
-     * Removes/deletes this bucket on the Terrastore server cluster.
-     * 
-     * Removing a bucket also discards any and all content stored within.
+     * Clears this bucket on the Terrastore server cluster, discarding all stored contents.
      * 
      * @throws TerrastoreClientException if the request fails
      */
-    public void remove() throws TerrastoreClientException {
-        connection.removeBucket(bucket);
+    public void clear() throws TerrastoreClientException {
+        connection.clearBucket(bucket);
     }
 
     /**

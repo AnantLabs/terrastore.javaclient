@@ -115,7 +115,7 @@ public class HTTPConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void removeBucket(String bucket) throws TerrastoreClientException {
+    public void clearBucket(String bucket) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
         try {
             ClientRequest request = getBucketRequest(serverHost, bucket);

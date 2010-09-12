@@ -45,7 +45,7 @@ public interface Connection {
     /**
      * Removes a bucket.
      */
-    void removeBucket(String bucket) throws TerrastoreClientException;
+    void clearBucket(String bucket) throws TerrastoreClientException;
 
     /**
      * Retrieves a {@link Set} containing the names of all available buckets.
