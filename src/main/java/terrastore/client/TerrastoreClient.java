@@ -126,4 +126,13 @@ public class TerrastoreClient {
     public BucketsOperation buckets() {
         return new BucketsOperation(connection);
     }
+
+    /**
+     * Sets up a {@link StatsOperation} for accessing Terrastore statistics.
+     *
+     * @return A {@link StatsOperation}.
+     */
+    public StatsOperation stats() {
+        return new StatsOperation(connection);
+    }
 }

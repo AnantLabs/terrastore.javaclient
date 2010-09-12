@@ -30,6 +30,7 @@ import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.client.core.executors.ApacheHttpClientExecutor;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import terrastore.client.BackupOperation;
+import terrastore.client.ClusterStats;
 import terrastore.client.ConditionalOperation;
 import terrastore.client.KeyOperation;
 import terrastore.client.PredicateOperation;
@@ -47,6 +48,7 @@ import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.TerrastoreServerException;
 import terrastore.client.connection.UnsatisfiedConditionException;
 import terrastore.client.mapping.JsonBucketsReader;
+import terrastore.client.mapping.JsonClusterStatsReader;
 import terrastore.client.mapping.JsonObjectDescriptor;
 import terrastore.client.mapping.JsonObjectReader;
 import terrastore.client.mapping.JsonObjectWriter;
@@ -81,6 +83,7 @@ public class HTTPConnection implements Connection {
             providerFactory.addMessageBodyWriter(new JsonParametersWriter());
             providerFactory.addMessageBodyWriter(new JsonObjectWriter(descriptors));
             // Registration order matters: JsonObjectReader must come last because reads all:
+            providerFactory.addMessageBodyReader(new JsonClusterStatsReader());
             providerFactory.addMessageBodyReader(new JsonValuesReader(descriptors));
             providerFactory.addMessageBodyReader(new JsonBucketsReader());
             providerFactory.addMessageBodyReader(new JsonObjectReader(descriptors));
@@ -88,6 +91,25 @@ public class HTTPConnection implements Connection {
             registerProviders(providerFactory);
         } catch (Exception ex) {
             throw new IllegalStateException(ex.getMessage(), ex);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public ClusterStats getClusterStats() throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
+        try {
+            ClientRequest request = getStatsRequest(serverHost, "cluster");
+            ClientResponse<ClusterStats> response = request.get();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(ClusterStats.class);
+            } else {
+                throw getGeneralExceptionFor(response);
+            }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw connectionException(serverHost, e);
         }
     }
 
@@ -350,6 +372,12 @@ public class HTTPConnection implements Connection {
         } catch (Exception e) {
             throw connectionException(serverHost, e);
         }
+    }
+
+    private ClientRequest getStatsRequest(String serverHost, String stats) {
+        String requestUri = UriBuilder.fromUri(serverHost).path("_stats").path(stats).build().toString();
+        ClientRequest request = requestFactory.createRequest(requestUri);
+        return request.accept(JSON_CONTENT_TYPE);
     }
 
     private ClientRequest getKeyRequest(String serverHost, String bucket, String key) {

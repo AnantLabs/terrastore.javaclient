@@ -25,11 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.After;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import terrastore.client.BucketOperation;
+import terrastore.client.ClusterStats;
 import terrastore.client.KeyOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
@@ -53,16 +55,41 @@ public class TerrastoreClientIntegrationTest {
     private static final TupleTestValue TUPLE_TEST_VALUE_2 = new TupleTestValue("value_2-1", "value_1-2");
     
     private TerrastoreClient client;
+    private BucketOperation bucket;
+    private BucketOperation bucket1;
+    private BucketOperation bucket2;
 
     @Before
     public void setUp() throws Exception {
         client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory());
+        bucket = client.bucket("bucket");
+        bucket1 = client.bucket("bucket1");
+        bucket2 = client.bucket("bucket2");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        bucket.remove();
+        bucket1.remove();
+        bucket2.remove();
+        Thread.sleep(1000);
     }
 
     @Test
-    public void testAddThenRemoveBucket() throws Exception {
-        client.bucket("bucket").key("value").put(TEST_VALUE_1);
-        client.bucket("bucket").remove();
+    public void testClusterStats() throws Exception {
+        ClusterStats stats = client.stats().cluster();
+        assertNotNull(stats);
+    }
+
+    @Test
+    public void testBuckets() throws TerrastoreClientException {
+        bucket1.key("value").put(TEST_VALUE_1);
+        bucket2.key("value").put(TEST_VALUE_1);
+
+        Set<String> buckets = client.buckets().list();
+        assertEquals(2, buckets.size());
+        assertTrue(buckets.contains("bucket1"));
+        assertTrue(buckets.contains("bucket2"));
     }
 
     @Test
@@ -71,128 +98,71 @@ public class TerrastoreClientIntegrationTest {
     }
 
     @Test
-    public void testAddThenGetBuckets() throws TerrastoreClientException {
-        BucketOperation bucket1 = client.bucket("bucket1");
-        BucketOperation bucket2 = client.bucket("bucket2");
-
-        bucket1.key("value").put(TEST_VALUE_1);
-        bucket2.key("value").put(TEST_VALUE_1);
-
-        Set<String> buckets = client.buckets().list();
-        assertEquals(2, buckets.size());
-        assertTrue(buckets.contains("bucket1"));
-        assertTrue(buckets.contains("bucket2"));
-
-        bucket1.remove();
-        bucket2.remove();
-    }
-
-    @Test
-    public void testPutAndRemoveValue() throws TerrastoreClientException {
-        BucketOperation bucket = client.bucket("bucket");
-
-        bucket.key("key1").put(TEST_VALUE_1);
-        bucket.key("key1").remove();
-
-        bucket.remove();
-    }
-
-    @Test
-    public void testRemoveValueNotFound() throws Exception {
-        client.bucket("bucket").key("not_found").remove();
-    }
-
-    @Test
-    public void testAddAndGetValue() throws TerrastoreClientException {
-        BucketOperation bucket = client.bucket("bucket");
-
+    public void testPutAndGetValue() throws TerrastoreClientException {
         bucket.key("key1").put(TEST_VALUE_1);
         TestValue value = bucket.key("key1").get(TestValue.class);
         assertNotNull(value);
         assertEquals(TEST_VALUE_1, value);
+    }
 
-        bucket.remove();
+    @Test
+    public void testPutAndRemoveValue() throws TerrastoreClientException {
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key1").remove();
+    }
+
+    @Test
+    public void testRemoveValueNotFound() throws Exception {
+        bucket.key("not_found").remove();
     }
 
     @Test
     public void testConditionallyPutValue() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
-
         bucket.key("key1").conditional("jxpath:/value").put(TEST_VALUE_2);
-
         assertEquals(TEST_VALUE_2, bucket.key("key1").get(TestValue.class));
-
-        bucket.remove();
     }
 
     @Test(expected = UnsatisfiedConditionException.class)
     public void testConditionallyPutValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
-
-        try {
             bucket.key("key1").conditional("jxpath:/notFound").put(TEST_VALUE_2);
-        } finally {
-            bucket.remove();
-        }
     }
 
     @Test
     public void testConditionallyGetValue() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
-
         assertEquals(TEST_VALUE_1, bucket.key("key1").conditional("jxpath:/value").get(TestValue.class));
-
-        bucket.remove();
     }
 
     @Test(expected = UnsatisfiedConditionException.class)
     public void testConditionallyGetValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
-
-        try {
             bucket.key("key1").conditional("jxpath:/notFound").get(TestValue.class);
-        } finally {
-            bucket.remove();
-        }
     }
 
     @Test(expected = KeyNotFoundException.class)
     public void testGetValueNotFoundFromExistingBucketThrowsException() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
         bucket.key("value").put(TEST_VALUE_1);
-
-        try {
             bucket.key("not_found").get(TestValue.class);
-        } finally {
-            bucket.remove();
-        }
     }
 
     @Test(expected = KeyNotFoundException.class)
     public void testGetValueNotFoundFromNonExistingBucketThrowsException() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
-        try {
             bucket.key("not_found").get(TestValue.class);
-        } finally {
-            bucket.remove();
-        }
     }
 
     @Test
     public void testGetAllValuesWithNoLimit() throws Exception {
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key2").put(TEST_VALUE_2);
+        bucket.key("key3").put(TEST_VALUE_3);
 
-        client.bucket("bucket").key("key1").put(TEST_VALUE_1);
-        client.bucket("bucket").key("key2").put(TEST_VALUE_2);
-        client.bucket("bucket").key("key3").put(TEST_VALUE_3);
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
 
         Map<String, TestValue> values = client.bucket("bucket").values().get(TestValue.class);
         assertNotNull(values);
@@ -203,15 +173,18 @@ public class TerrastoreClientIntegrationTest {
         assertTrue(values.containsValue(TEST_VALUE_1));
         assertTrue(values.containsValue(TEST_VALUE_2));
         assertTrue(values.containsValue(TEST_VALUE_3));
-
-        client.bucket("bucket").remove();
     }
 
     @Test
     public void testGetAllValuesWithLimit() throws Exception {
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key2").put(TEST_VALUE_2);
 
-        client.bucket("bucket").key("key1").put(TEST_VALUE_1);
-        client.bucket("bucket").key("key2").put(TEST_VALUE_2);
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
 
         Map<String, TestValue> values = client.bucket("bucket").values().limit(1).get(TestValue.class);
 
@@ -219,17 +192,19 @@ public class TerrastoreClientIntegrationTest {
         assertEquals(1, values.size());
         assertTrue(values.containsKey("key1") || values.containsKey("key2"));
         assertTrue(values.containsValue(TEST_VALUE_1) || values.containsValue(TEST_VALUE_2));
-
-        client.bucket("bucket").remove();
     }
 
     @Test
     public void testDoRangeQueryWithNoPredicate() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
+
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
 
         Map<String, TestValue> result = bucket.range().from("key2").to("key3").get(TestValue.class);
 
@@ -238,17 +213,19 @@ public class TerrastoreClientIntegrationTest {
         List<TestValue> values = new ArrayList<TestValue>(result.values());
         assertEquals(TEST_VALUE_2, values.get(0));
         assertEquals(TEST_VALUE_3, values.get(1));
-
-        bucket.remove();
     }
 
     @Test
     public void testDoRangeQueryWithNoEndKey() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
+
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
 
         Map<String, TestValue> map = bucket.range().from("key2").get(TestValue.class);
 
@@ -257,17 +234,19 @@ public class TerrastoreClientIntegrationTest {
         List<TestValue> values = new ArrayList<TestValue>(map.values());
         assertEquals(TEST_VALUE_2, values.get(0));
         assertEquals(TEST_VALUE_3, values.get(1));
-
-        bucket.remove();
     }
 
     @Test
     public void testDoRangeQueryWithPredicate() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
+
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
 
         Map<String, TestValue> result = bucket.range("lexical-asc").from("key2").to("key3").predicate("jxpath:/value").get(TestValue.class);
 
@@ -276,29 +255,26 @@ public class TerrastoreClientIntegrationTest {
         List<TestValue> values = new ArrayList<TestValue>(result.values());
         assertEquals(TEST_VALUE_2, values.get(0));
         assertEquals(TEST_VALUE_3, values.get(1));
-
-        bucket.remove();
     }
 
     @Test
     public void testDoRangeQueryWithPredicateWhenNoKeysExists() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         Map<String, TestValue> result = bucket.range("lexical-asc").from("key2").to("key3").predicate("jxpath:/value").get(TestValue.class);
-
         assertNotNull(result);
         assertEquals(0, result.size());
-
-        bucket.remove();
     }
 
     @Test
     public void testDoPredicateQuery() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
+
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
 
         Map<String, TestValue> result = bucket.predicate("jxpath:/value").get(TestValue.class);
 
@@ -310,20 +286,13 @@ public class TerrastoreClientIntegrationTest {
         assertTrue(result.containsValue(TEST_VALUE_1));
         assertTrue(result.containsValue(TEST_VALUE_2));
         assertTrue(result.containsValue(TEST_VALUE_3));
-
-        bucket.remove();
     }
 
     @Test
     public void testDoPredicateQueryWhenNoKeysExists() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         Map<String, TestValue> result = bucket.predicate("jxpath:/value").get(TestValue.class);
-
         assertNotNull(result);
         assertEquals(0, result.size());
-
-        bucket.remove();
     }
 
     @Test
@@ -333,58 +302,50 @@ public class TerrastoreClientIntegrationTest {
         String value1 = "value1";
         parameters.put(param1, value1);
 
-        KeyOperation key = client.bucket("bucket").key("key1");
+        KeyOperation key = bucket.key("key1");
+
         key.put(TEST_VALUE_1);
 
         assertEquals(TEST_VALUE_2, key.update("replace").timeOut(1000L).parameters(getAsMap(TEST_VALUE_2)).executeAndGet(TestValue.class));
-
-        client.bucket("bucket").remove();
     }
 
     @Test
     public void testExecuteReplaceUpdateWithNoParameters() throws Exception {
-        KeyOperation key = client.bucket("bucket").key("key1");
+        KeyOperation key = bucket.key("key1");
+
         key.put(TEST_VALUE_1);
 
         assertEquals(TEST_VALUE_NULL, key.update("replace").timeOut(1000L).executeAndGet(TestValue.class));
-
-        client.bucket("bucket").remove();
     }
     
     @Test
     public void testExecuteMergeUpdate() throws Exception {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("value1", "value_2-1");
-        
-        KeyOperation key = client.bucket("bucket").key("key1");
+
+        KeyOperation key = bucket.key("key1");
         key.put(TUPLE_TEST_VALUE_1);
         
         assertEquals(TUPLE_TEST_VALUE_2, key.update("merge").parameters(parameters).timeOut(1000L).executeAndGet(TupleTestValue.class));
-        
-        client.bucket("bucket").remove();
     }
     
     @Test
     public void testExecuteMergeUpdateWithNoParameters() throws Exception {
-        KeyOperation key = client.bucket("bucket").key("key1");
+        KeyOperation key = bucket.key("key1");
         key.put(TUPLE_TEST_VALUE_1);
         
         assertEquals(TUPLE_TEST_VALUE_1, key.update("merge").timeOut(1000L).executeAndGet(TupleTestValue.class));
-        
-        client.bucket("bucket").remove();
     }
     
     @Test
     public void testExecuteAtomicCounterUpdate() throws Exception {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("value", "15");
-        
-        KeyOperation key = client.bucket("bucket").key("key1");
+
+        KeyOperation key = bucket.key("key1");
         key.put(new TestValue("10"));
         
         assertEquals(new TestValue("25"), key.update("counter").timeOut(1000L).parameters(parameters).executeAndGet(TestValue.class));
-        
-        client.bucket("bucket").remove();
     }
 
     @Test
@@ -396,18 +357,14 @@ public class TerrastoreClientIntegrationTest {
                 + "}";
         params.put("update", f);
 
-        KeyOperation key = client.bucket("bucket").key("key1");
+        KeyOperation key = bucket.key("key1");
         key.put(TEST_VALUE_1);
 
         assertEquals(TEST_VALUE_2, key.update("js").timeOut(1000L).parameters(params).executeAndGet(TestValue.class));
-
-        client.bucket("bucket").remove();
     }
 
     @Test
     public void testExportImportBackup() throws Exception {
-        BucketOperation bucket = client.bucket("bucket");
-
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
@@ -421,8 +378,6 @@ public class TerrastoreClientIntegrationTest {
 
         bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeImport();
         assertEquals(3, bucket.values().get(TestValue.class).size());
-
-        bucket.remove();
     }
     
     @Test(expected=TerrastoreConnectionException.class)
@@ -536,8 +491,5 @@ public class TerrastoreClientIntegrationTest {
                 return false;
             return true;
         }
-        
-        
-        
     }
 }

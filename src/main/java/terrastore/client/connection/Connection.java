@@ -18,6 +18,7 @@ package terrastore.client.connection;
 import java.util.Map;
 import java.util.Set;
 import terrastore.client.BackupOperation;
+import terrastore.client.ClusterStats;
 import terrastore.client.ConditionalOperation;
 import terrastore.client.KeyOperation;
 import terrastore.client.PredicateOperation;
@@ -35,6 +36,11 @@ import terrastore.client.Values;
  *  
  */
 public interface Connection {
+
+    /**
+     * Gets the cluster statistics.
+     */
+    ClusterStats getClusterStats() throws TerrastoreClientException;
 
     /**
      * Removes a bucket.
