@@ -24,9 +24,12 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
+ * The ClusterStats object holds information about the whole Terrastore cluster status, such as available clusters,
+ * available nodes within each cluster and so on.
+ *
  * @author Giuseppe Santoro
  */
-public class ClusterStats implements Serializable {
+public class ClusterStats {
 
     private Set<ClusterStats.Cluster> clusters = new HashSet<Cluster>();
 
