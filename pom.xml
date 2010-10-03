@@ -108,6 +108,7 @@
                             <skip>false</skip>
                             <excludes>
                                 <exclude>terrastore/client/test/integration/*.java</exclude>
+                                <exclude>terrastore/client/test/pojostest/*.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
@@ -125,6 +126,7 @@
                             <skip>false</skip>
                             <includes>
                                 <include>terrastore/client/test/integration/*.java</include>
+                                <include>terrastore/client/test/pojostest/TerrastorePojoTest.java</include>
                             </includes>
                         </configuration>
                     </plugin>
