@@ -20,8 +20,10 @@ import static org.jboss.resteasy.plugins.providers.RegisterBuiltin.registerProvi
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.jboss.resteasy.client.ClientRequest;
@@ -29,6 +31,7 @@ import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.client.core.executors.ApacheHttpClientExecutor;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+
 import terrastore.client.BackupOperation;
 import terrastore.client.ClusterStats;
 import terrastore.client.ConditionalOperation;
@@ -40,8 +43,8 @@ import terrastore.client.TerrastoreRequestException;
 import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
-import terrastore.client.connection.Connection;
 import terrastore.client.connection.ClusterUnavailableException;
+import terrastore.client.connection.Connection;
 import terrastore.client.connection.HostManager;
 import terrastore.client.connection.KeyNotFoundException;
 import terrastore.client.connection.TerrastoreConnectionException;
@@ -54,6 +57,7 @@ import terrastore.client.mapping.JsonObjectReader;
 import terrastore.client.mapping.JsonObjectWriter;
 import terrastore.client.mapping.JsonParametersWriter;
 import terrastore.client.mapping.JsonValuesReader;
+import terrastore.client.mapreduce.MapReduceQuery;
 
 /**
  * Handles connections to Terrastore servers using the RESTEasy Client API
@@ -159,6 +163,28 @@ public class HTTPConnection implements Connection {
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw connectionException(serverHost, e);
+        }
+    }
+    
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public String mapReduce(String bucket, MapReduceQuery mapReduceTask) {
+        String serverHost = hostManager.getHost();
+        try {
+            String requestUri = UriBuilder.fromUri(serverHost).path(bucket).path("mapReduce").build().toString();
+            ClientRequest request = requestFactory.createRequest(requestUri);
+            request.header("Content-Type", JSON_CONTENT_TYPE);
+            
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, mapReduceTask).post();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw getGeneralExceptionFor(response);
+            }
+           return (String) response.getEntity(String.class);            
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
@@ -441,4 +467,5 @@ public class HTTPConnection implements Connection {
                 return new TerrastoreRequestException(response.getStatus(), response.getEntity(String.class).toString());
         }
     }
+
 }

@@ -16,6 +16,7 @@
 package terrastore.client;
 
 import terrastore.client.connection.Connection;
+import terrastore.client.mapreduce.MapReduceQuery;
 
 /**
  * BucketOperation serves as intermediaries for server operations pertaining to
@@ -118,5 +119,9 @@ public class BucketOperation extends AbstractOperation {
      */
     public BackupOperation backup() {
         return new BackupOperation(connection, bucket);
+    }
+
+    public String mapReduce(MapReduceQuery mapReduceTask) {
+        return connection.mapReduce(bucket, mapReduceTask);
     }
 }

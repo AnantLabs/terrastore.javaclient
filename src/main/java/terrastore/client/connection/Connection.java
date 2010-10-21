@@ -17,16 +17,18 @@ package terrastore.client.connection;
 
 import java.util.Map;
 import java.util.Set;
+
 import terrastore.client.BackupOperation;
 import terrastore.client.ClusterStats;
 import terrastore.client.ConditionalOperation;
 import terrastore.client.KeyOperation;
 import terrastore.client.PredicateOperation;
-import terrastore.client.ValuesOperation;
 import terrastore.client.RangeOperation;
 import terrastore.client.TerrastoreClientException;
 import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
+import terrastore.client.ValuesOperation;
+import terrastore.client.mapreduce.MapReduceQuery;
 
 /**
  * Connection interface for Terrastore server operations.
@@ -115,4 +117,6 @@ public interface Connection {
      * Execute an atomic update and returns the updated value.
      */
     <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException;
+
+    String mapReduce(String bucket, MapReduceQuery task);
 }
