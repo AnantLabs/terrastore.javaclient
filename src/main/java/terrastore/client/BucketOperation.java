@@ -16,6 +16,7 @@
 package terrastore.client;
 
 import terrastore.client.connection.Connection;
+import terrastore.client.mapreduce.MapReduceOperation;
 import terrastore.client.mapreduce.MapReduceQuery;
 
 /**
@@ -121,7 +122,7 @@ public class BucketOperation extends AbstractOperation {
         return new BackupOperation(connection, bucket);
     }
 
-    public String mapReduce(MapReduceQuery mapReduceTask) {
-        return connection.mapReduce(bucket, mapReduceTask);
+    public MapReduceOperation mapReduce(MapReduceQuery query) {
+        return new MapReduceOperation(connection, bucket, query);
     }
 }

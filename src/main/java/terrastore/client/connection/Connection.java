@@ -28,7 +28,7 @@ import terrastore.client.TerrastoreClientException;
 import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
-import terrastore.client.mapreduce.MapReduceQuery;
+import terrastore.client.mapreduce.MapReduceOperation;
 
 /**
  * Connection interface for Terrastore server operations.
@@ -118,5 +118,5 @@ public interface Connection {
      */
     <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException;
 
-    String mapReduce(String bucket, MapReduceQuery task);
+    <T> T mapReduce(MapReduceOperation task, Class<T> returnType);
 }

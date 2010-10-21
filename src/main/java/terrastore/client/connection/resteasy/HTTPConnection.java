@@ -57,7 +57,7 @@ import terrastore.client.mapping.JsonObjectReader;
 import terrastore.client.mapping.JsonObjectWriter;
 import terrastore.client.mapping.JsonParametersWriter;
 import terrastore.client.mapping.JsonValuesReader;
-import terrastore.client.mapreduce.MapReduceQuery;
+import terrastore.client.mapreduce.MapReduceOperation;
 
 /**
  * Handles connections to Terrastore servers using the RESTEasy Client API
@@ -173,18 +173,18 @@ public class HTTPConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public String mapReduce(String bucket, MapReduceQuery mapReduceTask) {
+    public <T> T mapReduce(MapReduceOperation operation, Class<T> returnType) {
         String serverHost = hostManager.getHost();
         try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(bucket).path("mapReduce").build().toString();
+            String requestUri = UriBuilder.fromUri(serverHost).path(operation.bucket()).path("mapReduce").build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
             request.header("Content-Type", JSON_CONTENT_TYPE);
             
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, mapReduceTask).post();
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, operation.query()).post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
-           return (String) response.getEntity(String.class);            
+           return (T) response.getEntity(returnType);            
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
