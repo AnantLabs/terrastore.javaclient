@@ -31,6 +31,8 @@ import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.client.core.executors.ApacheHttpClientExecutor;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import terrastore.client.BackupOperation;
 import terrastore.client.ClusterStats;
@@ -69,6 +71,7 @@ import terrastore.client.mapreduce.MapReduceOperation;
  */
 public class HTTPConnection implements Connection {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HTTPConnection.class);
     private static final String JSON_CONTENT_TYPE = "application/json";
     //
     private final HostManager hostManager;
@@ -173,14 +176,12 @@ public class HTTPConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T mapReduce(MapReduceOperation operation, Class<T> returnType) {
+    public <T> T queryByMapReduce(MapReduceOperation.Context context, Class<T> returnType) {
         String serverHost = hostManager.getHost();
         try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(operation.bucket()).path("mapReduce").build().toString();
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("mapReduce").build().toString();
             ClientRequest request = requestFactory.createRequest(requestUri);
-            request.header("Content-Type", JSON_CONTENT_TYPE);
-            
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, operation.query()).post();
+            ClientResponse response = request.body(JSON_CONTENT_TYPE, context.getQuery()).post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
@@ -419,6 +420,7 @@ public class HTTPConnection implements Connection {
     }
 
     private TerrastoreClientException connectionException(String serverHost, Exception e) {
+        LOG.error(e.getMessage(), e);
         hostManager.suspect(serverHost);
         return new TerrastoreConnectionException("Unable to connect to: " + serverHost, serverHost, e);
     }

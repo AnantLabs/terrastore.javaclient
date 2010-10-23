@@ -104,6 +104,12 @@ public interface Connection {
             throws TerrastoreClientException;
 
     /**
+     * Executes a map-reduce query and returns the aggregated value.
+     */
+    <T> T queryByMapReduce(MapReduceOperation.Context context, Class<T> returnType)
+            throws TerrastoreClientException;
+
+    /**
      * Do a backup export.
      */
     void exportBackup(BackupOperation.Context context) throws TerrastoreClientException;
@@ -118,5 +124,4 @@ public interface Connection {
      */
     <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException;
 
-    <T> T mapReduce(MapReduceOperation task, Class<T> returnType);
 }
