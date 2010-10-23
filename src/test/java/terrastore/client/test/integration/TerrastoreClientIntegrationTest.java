@@ -39,6 +39,7 @@ import terrastore.client.connection.KeyNotFoundException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.UnsatisfiedConditionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
+import terrastore.client.mapreduce.MapReduceQuery;
 
 /**
  * @author Sergio Bossa
@@ -293,6 +294,28 @@ public class TerrastoreClientIntegrationTest {
         Map<String, TestValue> result = bucket.predicate("jxpath:/value").get(TestValue.class);
         assertNotNull(result);
         assertEquals(0, result.size());
+    }
+
+    @Test
+    public void testDoMapReduceQueryWithRange() throws Exception {
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key2").put(TEST_VALUE_2);
+        bucket.key("key3").put(TEST_VALUE_3);
+
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
+
+        Map<String, Number> result = bucket.mapReduce(new MapReduceQuery()
+                .range(new MapReduceQuery.Range().from("key1").to("key2").timeToLive(10000))
+                .task(new MapReduceQuery.Task().mapper("size").reducer("size").timeout(10000)))
+                .execute(Map.class);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(2, result.get("size"));
     }
 
     @Test
