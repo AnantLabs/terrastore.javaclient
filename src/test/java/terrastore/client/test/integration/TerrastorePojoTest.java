@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package terrastore.client.test.pojostest;
+package terrastore.client.test.integration;
 
 import org.junit.After;
 import org.junit.Before;
@@ -26,6 +26,10 @@ import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 
 import java.util.Map;
+import terrastore.client.test.pojostest.Address;
+import terrastore.client.test.pojostest.Address2;
+import terrastore.client.test.pojostest.Customer;
+import terrastore.client.test.pojostest.PhoneNumber;
 
 import static org.junit.Assert.*;
 
@@ -48,7 +52,7 @@ public class TerrastorePojoTest {
 
     @Before
     public void setUp() throws Exception {
-        client = new TerrastoreClient("http://localhost:8000", new HTTPConnectionFactory());
+        client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory());
 
         tearDown();    // Clean everything first
 
