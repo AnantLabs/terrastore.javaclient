@@ -18,7 +18,6 @@ package terrastore.client.connection.resteasy;
 import static org.jboss.resteasy.plugins.providers.RegisterBuiltin.registerProviders;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.Response;
@@ -105,9 +104,11 @@ public class HTTPConnection implements Connection {
     @Override
     public ClusterStats getClusterStats() throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<ClusterStats> response = null;
         try {
-            ClientRequest request = getStatsRequest(serverHost, "cluster");
-            ClientResponse<ClusterStats> response = request.get();
+            request = getStatsRequest(serverHost, "cluster");
+            response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(ClusterStats.class);
             } else {
@@ -117,6 +118,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -124,9 +129,11 @@ public class HTTPConnection implements Connection {
     @Override
     public void clearBucket(String bucket) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<String> response = null;
         try {
-            ClientRequest request = getBucketRequest(serverHost, bucket);
-            ClientResponse<String> response = request.delete();
+            request = getBucketRequest(serverHost, bucket);
+            response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
@@ -134,6 +141,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -141,11 +152,13 @@ public class HTTPConnection implements Connection {
     @Override
     public Set<String> getBuckets() throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<Set<String>> response = null;
         try {
-            ClientRequest request = requestFactory.createRequest(serverHost);
-            ClientResponse response = request.accept(JSON_CONTENT_TYPE).get();
+            request = requestFactory.createRequest(serverHost);
+            response = request.accept(JSON_CONTENT_TYPE).get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                return (Set<String>) response.getEntity(Set.class);
+                return response.getEntity(Set.class);
             } else {
                 throw getGeneralExceptionFor(response);
             }
@@ -153,6 +166,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -160,9 +177,11 @@ public class HTTPConnection implements Connection {
     @Override
     public <T> void putValue(KeyOperation.Context context, T value) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse response = null;
         try {
-            ClientRequest request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
+            request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
+            response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
@@ -170,26 +189,35 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
-    
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T queryByMapReduce(MapReduceOperation.Context context, Class<T> returnType) {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<T> response = null;
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("mapReduce").build().toString();
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, context.getQuery()).post();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, context.getQuery()).post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
-           return (T) response.getEntity(returnType);            
+            return response.getEntity(returnType);
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -197,11 +225,13 @@ public class HTTPConnection implements Connection {
     @Override
     public <T> void putValue(ConditionalOperation.Context context, T value) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse response = null;
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).queryParam("predicate", context.getPredicate()).
                     build().toString();
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, value).put();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getExceptionForConditionalOperation(response, context);
             }
@@ -209,6 +239,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -216,9 +250,11 @@ public class HTTPConnection implements Connection {
     @Override
     public <T> T getValue(KeyOperation.Context context, Class<T> type) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<T> response = null;
         try {
-            ClientRequest request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
-            ClientResponse<T> response = request.get();
+            request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
+            response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
@@ -228,6 +264,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -235,11 +275,13 @@ public class HTTPConnection implements Connection {
     @Override
     public <T> T getValue(ConditionalOperation.Context context, Class<T> type) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<T> response = null;
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).queryParam("predicate", context.getPredicate()).
                     build().toString();
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse<T> response = request.get();
+            request = requestFactory.createRequest(requestUri);
+            response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
@@ -249,6 +291,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -256,9 +302,11 @@ public class HTTPConnection implements Connection {
     @Override
     public void removeValue(KeyOperation.Context context) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse response = null;
         try {
-            ClientRequest request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
-            ClientResponse response = request.delete();
+            request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
+            response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
@@ -266,18 +314,24 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<String, T> getAllValues(ValuesOperation.Context context, Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> getAllValues(ValuesOperation.Context context, Class<T> type) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<Values<T>> response = null;
         try {
-            ClientRequest request = getBucketRequest(serverHost, context.getBucket()).queryParameter("limit", context.getLimit());
-            ClientResponse response = request.get();
+            request = getBucketRequest(serverHost, context.getBucket()).queryParameter("limit", context.getLimit());
+            response = request.get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                return (Values<T>) response.getEntity(Values.class, type);
+                return response.getEntity(Values.class, type);
             } else {
                 throw getGeneralExceptionFor(response);
             }
@@ -285,6 +339,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -292,6 +350,8 @@ public class HTTPConnection implements Connection {
     @Override
     public <T> Values<T> queryByRange(RangeOperation.Context context, Class<T> type) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<Values<T>> response = null;
         try {
             UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
                     queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
@@ -305,10 +365,10 @@ public class HTTPConnection implements Connection {
                 uriBuilder.queryParam("predicate", context.getPredicate());
             }
             String requestUri = uriBuilder.build().toString();
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse<T> response = request.accept(JSON_CONTENT_TYPE).get();
+            request = requestFactory.createRequest(requestUri);
+            response = request.accept(JSON_CONTENT_TYPE).get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                return (Values<T>) response.getEntity(Values.class, type);
+                return response.getEntity(Values.class, type);
             } else {
                 throw getGeneralExceptionFor(response);
             }
@@ -316,6 +376,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -323,14 +387,16 @@ public class HTTPConnection implements Connection {
     @Override
     public <T> Values<T> queryByPredicate(PredicateOperation.Context context, Class<T> type) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<Values<T>> response = null;
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("predicate").queryParam("predicate", context.getPredicate()).build().
                     toString();
 
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse response = request.accept(JSON_CONTENT_TYPE).get();
+            request = requestFactory.createRequest(requestUri);
+            response = request.accept(JSON_CONTENT_TYPE).get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                return (Values<T>) response.getEntity(Values.class, type);
+                return response.getEntity(Values.class, type);
             } else {
                 throw getGeneralExceptionFor(response);
             }
@@ -338,6 +404,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -345,11 +415,13 @@ public class HTTPConnection implements Connection {
     @Override
     public void exportBackup(BackupOperation.Context context) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse response = null;
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("export").queryParam("destination", context.getFile()).
                     queryParam("secret", context.getSecretKey()).build().toString();
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, "").post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
@@ -357,6 +429,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -364,11 +440,13 @@ public class HTTPConnection implements Connection {
     @Override
     public void importBackup(BackupOperation.Context context) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse response = null;
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("import").queryParam("source", context.getFile()).queryParam("secret", context.
                     getSecretKey()).build().toString();
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse response = request.body(JSON_CONTENT_TYPE, "").post();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, "").post();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 throw getGeneralExceptionFor(response);
             }
@@ -376,6 +454,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 
@@ -383,12 +465,14 @@ public class HTTPConnection implements Connection {
     @Override
     public <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<T> response = null;
         try {
             String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).path("update").queryParam("function", context.
                     getFunction()).queryParam("timeout", context.getTimeOut()).build().toString();
 
-            ClientRequest request = requestFactory.createRequest(requestUri);
-            ClientResponse<T> response = request.body(JSON_CONTENT_TYPE, context.getParameters()).post();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, context.getParameters()).post();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return response.getEntity(type);
             } else {
@@ -398,6 +482,10 @@ public class HTTPConnection implements Connection {
             throw e;
         } catch (Exception e) {
             throw connectionException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
         }
     }
 

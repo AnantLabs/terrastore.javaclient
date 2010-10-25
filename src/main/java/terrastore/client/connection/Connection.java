@@ -15,7 +15,6 @@
  */
 package terrastore.client.connection;
 
-import java.util.Map;
 import java.util.Set;
 
 import terrastore.client.BackupOperation;
@@ -88,7 +87,7 @@ public interface Connection {
     /**
      * Returns all (or up to the specified limit) values within a bucket.
      */
-    <T> Map<String, T> getAllValues(ValuesOperation.Context context, Class<T> type)
+    <T> Values<T> getAllValues(ValuesOperation.Context context, Class<T> type)
             throws TerrastoreClientException;
 
     /**
