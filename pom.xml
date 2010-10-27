@@ -95,6 +95,12 @@
             <version>2.4</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>terrastore</groupId>
+            <artifactId>terrastore</artifactId>
+            <version>0.8.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -209,6 +215,11 @@
             <releases>
                 <enabled>true</enabled>
             </releases>
+        </repository>
+        <repository>
+           <id>terrastore-repo</id>
+           <name>Terrastore Repository</name>
+           <url>http://m2.terrastore.googlecode.com/hg/repo</url>
         </repository>
     </repositories>
 </project>

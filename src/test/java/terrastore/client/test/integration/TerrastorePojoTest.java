@@ -15,9 +15,7 @@
  */
 package terrastore.client.test.integration;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import terrastore.client.BucketOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
@@ -30,6 +28,7 @@ import terrastore.client.test.pojostest.Address;
 import terrastore.client.test.pojostest.Address2;
 import terrastore.client.test.pojostest.Customer;
 import terrastore.client.test.pojostest.PhoneNumber;
+import terrastore.test.embedded.TerrastoreEmbeddedServer;
 
 import static org.junit.Assert.*;
 
@@ -46,13 +45,27 @@ public class TerrastorePojoTest {
 
     private static final String LINDEX_KEY = "lindex";
 
+    private static TerrastoreEmbeddedServer server;
+
     private TerrastoreClient client;
 
     private Customer lindex;
 
+    @BeforeClass
+    public static void startTerrastoreEmbeddedServer() throws Exception {
+        server = new TerrastoreEmbeddedServer();
+        server.start("127.0.0.1", 8080);
+        Thread.sleep(3000);
+    }
+
+    @AfterClass
+    public static void stopTerrastoreEmbeddedServer() throws Exception {
+        server.stop();
+    }
+
     @Before
     public void setUp() throws Exception {
-        client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory());
+        client = new TerrastoreClient("http://127.0.0.1:8080", new HTTPConnectionFactory());
 
         tearDown();    // Clean everything first
 
