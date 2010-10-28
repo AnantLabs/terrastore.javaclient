@@ -53,6 +53,7 @@ public class TerrastorePojoTest {
 
     @BeforeClass
     public static void startTerrastoreEmbeddedServer() throws Exception {
+        System.setProperty("TERRASTORE_HOME", System.getProperty("java.io.tmpdir"));
         server = new TerrastoreEmbeddedServer();
         server.start("127.0.0.1", 8080);
         Thread.sleep(3000);
