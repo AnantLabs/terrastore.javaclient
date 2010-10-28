@@ -23,11 +23,13 @@ import terrastore.client.connection.KeyNotFoundException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 
+import java.io.File;
 import java.util.Map;
 import terrastore.client.test.pojostest.Address;
 import terrastore.client.test.pojostest.Address2;
 import terrastore.client.test.pojostest.Customer;
 import terrastore.client.test.pojostest.PhoneNumber;
+import terrastore.startup.Constants;
 import terrastore.test.embedded.TerrastoreEmbeddedServer;
 
 import static org.junit.Assert.*;
@@ -47,21 +49,50 @@ public class TerrastorePojoTest {
 
     private static TerrastoreEmbeddedServer server;
 
+    private static String backupPath;
+
     private TerrastoreClient client;
 
     private Customer lindex;
 
     @BeforeClass
     public static void startTerrastoreEmbeddedServer() throws Exception {
-        System.setProperty("TERRASTORE_HOME", System.getProperty("java.io.tmpdir"));
+        createBackupDir();
+
         server = new TerrastoreEmbeddedServer();
         server.start("127.0.0.1", 8080);
         Thread.sleep(3000);
     }
 
+    private static void createBackupDir() {
+        String tmpDirName = System.getProperty("java.io.tmpdir");
+
+        backupPath = tmpDirName + File.separator + Constants.BACKUPS_DIR;
+
+        File backupDir = new File(backupPath);
+
+        if (!backupDir.exists()) {
+            boolean backupDirCreated = backupDir.mkdir();
+
+            assertTrue(backupDirCreated);
+        }
+
+        System.setProperty("TERRASTORE_HOME", tmpDirName);
+    }
+
     @AfterClass
     public static void stopTerrastoreEmbeddedServer() throws Exception {
         server.stop();
+
+        removeBackupDir();
+    }
+
+    private static void removeBackupDir() {
+        File backupDir = new File(backupPath);
+        
+        boolean backupDirDeleted = backupDir.delete();
+
+        assertTrue(backupDirDeleted);
     }
 
     @Before
@@ -222,6 +253,13 @@ public class TerrastorePojoTest {
 
         customersBucket.backup().file(FILE_NAME).secretKey("SECRET-KEY").executeImport();
         assertEquals(1, customersBucket.values().get(Customer.class).size());
+
+        // Lets be a good citizen and remove the file after we're done
+        File backupFile = new File(backupPath + File.separator + FILE_NAME);
+
+        boolean wasDeleted = backupFile.delete();
+
+        assertTrue(wasDeleted);
     }
 
     @Test
