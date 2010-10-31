@@ -15,41 +15,30 @@
  */
 package terrastore.client;
 
+import terrastore.client.connection.ErrorMessage;
+
 /**
- * Checked exception thrown when Terrastore server returns a failure response,
- * providing the HTTP response status code and (optional) response body entity. <br/>
- * <br/>
- * This exception is checked because users of the API should catch it and get
- * more information about the failure by inspecting the status code and response
- * entity.
+ * Unchecked exception thrown when Terrastore server returns a failure response,
+ * providing the HTTP response status code and (optional) response body entity.
  * 
  * @author Sergio Bossa
+ * @author Sven Johansson
  */
 public class TerrastoreRequestException extends TerrastoreClientException {
 
     private static final long serialVersionUID = 5783498742315816361L;
 
-    private final int status;
-    private final String entity;
+    private final ErrorMessage errorMessage;
     
-    public TerrastoreRequestException(int status, String entity) {
-        super();
-        this.status = status;
-        this.entity = entity;
+    public TerrastoreRequestException(ErrorMessage message) {
+        this.errorMessage = message;
     }
 
     public int getStatus() {
-        return status;
-    }
-
-    public String getEntity() {
-        return entity;
+        return errorMessage.getCode();
     }
     
     public String getMessage() {
-        if (super.getMessage() == null) {
-            return entity;
-        }
-        return super.getMessage();
+        return errorMessage.getMessage();
     }
 }

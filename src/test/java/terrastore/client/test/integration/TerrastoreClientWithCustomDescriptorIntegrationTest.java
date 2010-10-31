@@ -18,6 +18,7 @@ package terrastore.client.test.integration;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.codehaus.jackson.JsonGenerator;
@@ -58,7 +59,7 @@ public class TerrastoreClientWithCustomDescriptorIntegrationTest {
 
     @Test
     public void testPutThenGetWithCustomDescriptor() throws Exception {
-        TerrastoreClient client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory(), Arrays.asList(new TestValueDescriptor()));
+        TerrastoreClient client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory(), new ArrayList<JsonObjectDescriptor<?>>(Arrays.asList(new TestValueDescriptor())));
 
         client.bucket("bucket").key("custom").put(CUSTOM_TEST_VALUE);
         TestValue value = client.bucket("bucket").key("custom").get(TestValue.class);

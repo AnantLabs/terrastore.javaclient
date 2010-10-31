@@ -1,5 +1,5 @@
 /**
- * Copyright 2009-2010 Sergio Bossa (sergio.bossa@gmail.com)
+ * Copyright 2009 - 2010 Sergio Bossa (sergio.bossa@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,19 +16,25 @@
 
 package terrastore.client.connection;
 
-import terrastore.client.TerrastoreRequestException;
-
 /**
  * @author Sven Johansson
- *  
  */
-public class KeyNotFoundException extends TerrastoreRequestException {
+public class ErrorMessage {
 
-    private static final long serialVersionUID = -4730815647522592173L;
+    private final String message;
+    private final Integer code;
 
-    public KeyNotFoundException(ErrorMessage message) {
-        super(message);
+    public ErrorMessage(String message, Integer code) {
+        this.message = message;
+        this.code = code;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
     
 }

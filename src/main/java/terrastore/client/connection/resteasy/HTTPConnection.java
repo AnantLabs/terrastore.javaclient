@@ -48,6 +48,7 @@ import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
 import terrastore.client.connection.ClusterUnavailableException;
 import terrastore.client.connection.Connection;
+import terrastore.client.connection.ErrorMessage;
 import terrastore.client.connection.HostManager;
 import terrastore.client.connection.KeyNotFoundException;
 import terrastore.client.connection.TerrastoreConnectionException;
@@ -78,11 +79,11 @@ public class HTTPConnection implements Connection {
     private final HostManager hostManager;
     private final ClientRequestFactory requestFactory;
 
-    public HTTPConnection(HostManager hostManager, List<? extends JsonObjectDescriptor<?>> descriptors) {
+    public HTTPConnection(HostManager hostManager, List<JsonObjectDescriptor<?>> descriptors) {
         this(hostManager, descriptors, new HttpClient(new MultiThreadedHttpConnectionManager()));
     }
 
-    public HTTPConnection(HostManager hostManager, List<? extends JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
+    public HTTPConnection(HostManager hostManager, List<JsonObjectDescriptor<?>> descriptors, HttpClient httpClient) {
         ResteasyProviderFactory providerFactory = ResteasyProviderFactory.getInstance();
         this.hostManager = hostManager;
         this.requestFactory = new ClientRequestFactory(new ApacheHttpClientExecutor(httpClient), providerFactory);
@@ -523,7 +524,7 @@ public class HTTPConnection implements Connection {
     private TerrastoreClientException getExceptionForKeyOperation(ClientResponse response, KeyOperation.Context context) {
         switch (response.getStatus()) {
             case 404:
-                return new KeyNotFoundException("Key not found: '" + context.getKey() + "'");
+                return new KeyNotFoundException((ErrorMessage) response.getEntity(ErrorMessage.class));
             default:
                 return getGeneralExceptionFor(response);
         }
@@ -531,9 +532,11 @@ public class HTTPConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getExceptionForConditionalOperation(ClientResponse response, ConditionalOperation.Context context) {
+        ErrorMessage message = (ErrorMessage) response.getEntity(ErrorMessage.class);
+        
         switch (response.getStatus()) {
             case 400:
-                return new TerrastoreRequestException(400, (String) response.getEntity(String.class));
+                return new TerrastoreRequestException(message);
             case 404:
                 return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.getKey() + "'");
             case 409:
@@ -547,7 +550,7 @@ public class HTTPConnection implements Connection {
     private TerrastoreClientException getExceptionForUpdateOperation(ClientResponse response, UpdateOperation.Context context) {
         switch (response.getStatus()) {
             case 404:
-                return new KeyNotFoundException((String) response.getEntity(String.class));
+                return new KeyNotFoundException((ErrorMessage) response.getEntity(ErrorMessage.class));
             default:
                 return getGeneralExceptionFor(response);
         }
@@ -556,7 +559,7 @@ public class HTTPConnection implements Connection {
     private Exception getBucketExceptionFor(ClientResponse<String> response, String bucket) {
         switch (response.getStatus()) {
         case 404:
-            return new TerrastoreRequestException(404, "Bucket '" + bucket + "' does not exist");
+            return new TerrastoreRequestException((ErrorMessage) response.getEntity(ErrorMessage.class));
         default:
             return getGeneralExceptionFor(response);
         }
@@ -565,17 +568,16 @@ public class HTTPConnection implements Connection {
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getGeneralExceptionFor(ClientResponse response) {
         switch (response.getStatus()) {
-            case 400:
-                return new TerrastoreRequestException(400, (String) response.getEntity(String.class));
             case 500:
-                if (StringUtils.isNotBlank((String) response.getEntity(String.class))) {
-                    return new TerrastoreRequestException(500, (String) response.getEntity(String.class));
+                try {
+                    return new TerrastoreRequestException((ErrorMessage) response.getEntity(ErrorMessage.class));
+                } catch (Exception e) {
+                    return new TerrastoreServerException("Unexpected server error.");
                 }
-                return new TerrastoreServerException("Unexpected server error.");
             case 503:
                 return new ClusterUnavailableException("The server cluster, or parts of the cluster, is not not available.");
             default:
-                return new TerrastoreRequestException(response.getStatus(), response.getEntity(String.class).toString());
+                return new TerrastoreRequestException((ErrorMessage) response.getEntity(ErrorMessage.class));
         }
     }
 

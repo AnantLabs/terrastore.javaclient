@@ -107,7 +107,7 @@ public class HTTPConnectionExceptionTest {
            client.bucket("bucket").mapReduce(query).execute(String.class);
            fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -120,7 +120,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").mapReduce(query).execute(String.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
 
@@ -133,7 +133,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").mapReduce(query).execute(String.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -146,7 +146,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").mapReduce(query).execute(String.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -156,7 +156,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").key("value").conditional("Three blind mice").put(TEST_PHONENUMBER);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -166,7 +166,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").key("value").conditional("Quick brown fox").get(PhoneNumber.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
 
@@ -207,7 +207,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").range().from("aaaa").predicate("A day in the life...").get(PhoneNumber.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -217,7 +217,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").predicate("We, the people...").get(PhoneNumber.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -227,7 +227,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").backup().secretKey("abcdefghij").file("bucket.bak").executeExport();
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -237,7 +237,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").backup().secretKey("SECRET-KEY").file("$£1@$/££.?$").executeExport();
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 500);
         }
     }
     
@@ -247,7 +247,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").backup().secretKey("gfergoij").file("bucket.bak").executeImport();
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 400);
         }
     }
     
@@ -257,7 +257,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").backup().secretKey("SECRET-KEY").file("nosuchfile.bak").executeImport();
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e);
+            verifyTerrastoreRequestException(e, 500);
         }
     }
 
@@ -302,7 +302,6 @@ public class HTTPConnectionExceptionTest {
         verifyTerrastoreRequestException(e, null);
     }
 
-
     private void verifyException(Class<? extends TerrastoreRequestException> expectedClass, Exception e, Integer statusCode) {
         assertEquals(expectedClass, e.getClass());
         TerrastoreRequestException requestException = (TerrastoreRequestException) e;
@@ -318,7 +317,6 @@ public class HTTPConnectionExceptionTest {
         }
         assertFalse(StringUtils.isBlank(requestException.getMessage()));
     }
-
     
     private void verifyTerrastoreConnectionException(Exception e) {
         assertEquals("Expected TerrastoreConnectionException. Got: " + e.getClass(), TerrastoreConnectionException.class, e.getClass());

@@ -25,5 +25,5 @@ import terrastore.client.mapping.JsonObjectDescriptor;
  */
 public interface ConnectionFactory {
 
-    Connection makeConnection(HostManager hostManager, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException;
+    Connection makeConnection(HostManager hostManager, List<JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException;
 }

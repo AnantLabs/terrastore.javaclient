@@ -70,7 +70,7 @@ public class TerrastoreClient {
      * @param descriptors Serialization/deserialization instructions.
      * @throws TerrastoreClientException If the provided arguments are invalid.
      */
-    public TerrastoreClient(String serverHost, ConnectionFactory connectionFactory, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
+    public TerrastoreClient(String serverHost, ConnectionFactory connectionFactory, List<JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
         if (null == serverHost) {
             throw new IllegalArgumentException(
                     "Cannot establish connection to null server URL");
@@ -102,7 +102,7 @@ public class TerrastoreClient {
      * @param descriptors Serialization/deserialization instructions.
      * @throws TerrastoreClientException If the provided arguments are invalid.
      */
-    public TerrastoreClient(HostManager hostManager, ConnectionFactory connectionFactory, List<? extends JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
+    public TerrastoreClient(HostManager hostManager, ConnectionFactory connectionFactory, List<JsonObjectDescriptor<?>> descriptors) throws TerrastoreClientException {
         this.connection = connectionFactory.makeConnection(hostManager, descriptors);
     }
 
