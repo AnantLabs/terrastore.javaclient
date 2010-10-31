@@ -45,4 +45,11 @@ public class TerrastoreRequestException extends TerrastoreClientException {
     public String getEntity() {
         return entity;
     }
+    
+    public String getMessage() {
+        if (super.getMessage() == null) {
+            return entity;
+        }
+        return super.getMessage();
+    }
 }

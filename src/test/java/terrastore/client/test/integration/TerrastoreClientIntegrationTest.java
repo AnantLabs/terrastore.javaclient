@@ -420,7 +420,7 @@ public class TerrastoreClientIntegrationTest {
     
     @Test(expected=TerrastoreConnectionException.class)
     public void testUnableToReachServer() throws Exception {
-        client = new TerrastoreClient("localhost:9999", new HTTPConnectionFactory());
+        client = new TerrastoreClient("http://localhost:9999", new HTTPConnectionFactory());
         client.bucket("bucket").key("value").put(TEST_VALUE_1);
     }
 

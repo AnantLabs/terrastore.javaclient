@@ -17,6 +17,7 @@ package terrastore.client.connection.resteasy;
 
 import static org.jboss.resteasy.plugins.providers.RegisterBuiltin.registerProviders;
 
+import java.net.ConnectException;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +26,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
 import org.jboss.resteasy.client.ClientResponse;
@@ -117,7 +119,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -135,12 +137,12 @@ public class HTTPConnection implements Connection {
             request = getBucketRequest(serverHost, bucket);
             response = request.delete();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw getGeneralExceptionFor(response);
+                throw getBucketExceptionFor(response, bucket);
             }
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -165,7 +167,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -183,37 +185,12 @@ public class HTTPConnection implements Connection {
             request = getKeyRequest(serverHost, context.getBucket(), context.getKey());
             response = request.body(JSON_CONTENT_TYPE, value).put();
             if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw getGeneralExceptionFor(response);
+                throw getBucketExceptionFor(response, context.getBucket());
             }
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
-        } finally {
-            if (response != null) {
-                response.releaseConnection();
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T queryByMapReduce(MapReduceOperation.Context context, Class<T> returnType) {
-        String serverHost = hostManager.getHost();
-        ClientRequest request = null;
-        ClientResponse<T> response = null;
-        try {
-            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("mapReduce").build().toString();
-            request = requestFactory.createRequest(requestUri);
-            response = request.body(JSON_CONTENT_TYPE, context.getQuery()).post();
-            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                throw getGeneralExceptionFor(response);
-            }
-            return response.getEntity(returnType);
-        } catch (TerrastoreClientException e) {
-            throw e;
-        } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -238,7 +215,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -263,7 +240,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -290,7 +267,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -313,7 +290,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -338,7 +315,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -375,7 +352,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -403,7 +380,32 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T queryByMapReduce(MapReduceOperation.Context context, Class<T> returnType) {
+        String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<T> response = null;
+        try {
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("mapReduce").build().toString();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, context.getQuery()).post();
+            if (!response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                throw getGeneralExceptionFor(response);
+            }
+            return response.getEntity(returnType);
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -428,7 +430,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -453,7 +455,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -481,7 +483,7 @@ public class HTTPConnection implements Connection {
         } catch (TerrastoreClientException e) {
             throw e;
         } catch (Exception e) {
-            throw connectionException(serverHost, e);
+            throw getClientSideException(serverHost, e);
         } finally {
             if (response != null) {
                 response.releaseConnection();
@@ -507,10 +509,14 @@ public class HTTPConnection implements Connection {
         return request.accept(JSON_CONTENT_TYPE);
     }
 
-    private TerrastoreClientException connectionException(String serverHost, Exception e) {
-        LOG.error(e.getMessage(), e);
-        hostManager.suspect(serverHost);
-        return new TerrastoreConnectionException("Unable to connect to: " + serverHost, serverHost, e);
+    private TerrastoreClientException getClientSideException(String serverHost, Exception e) {
+        if (e instanceof ConnectException) {
+            LOG.error(e.getMessage(), e);
+            hostManager.suspect(serverHost);
+            return new TerrastoreConnectionException("Unable to connect to: " + serverHost, serverHost, e);
+        }
+        
+        return new TerrastoreClientException("Could not service your request: " + e, e);
     }
 
     @SuppressWarnings("unchecked")
@@ -526,9 +532,10 @@ public class HTTPConnection implements Connection {
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getExceptionForConditionalOperation(ClientResponse response, ConditionalOperation.Context context) {
         switch (response.getStatus()) {
+            case 400:
+                return new TerrastoreRequestException(400, (String) response.getEntity(String.class));
             case 404:
-                return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.
-                        getKey() + "'");
+                return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.getKey() + "'");
             case 409:
                 return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satisfied.");
             default:
@@ -540,16 +547,30 @@ public class HTTPConnection implements Connection {
     private TerrastoreClientException getExceptionForUpdateOperation(ClientResponse response, UpdateOperation.Context context) {
         switch (response.getStatus()) {
             case 404:
-                return new KeyNotFoundException("Key not found: '" + context.getKey() + "'");
+                return new KeyNotFoundException((String) response.getEntity(String.class));
             default:
                 return getGeneralExceptionFor(response);
         }
     }
 
+    private Exception getBucketExceptionFor(ClientResponse<String> response, String bucket) {
+        switch (response.getStatus()) {
+        case 404:
+            return new TerrastoreRequestException(404, "Bucket '" + bucket + "' does not exist");
+        default:
+            return getGeneralExceptionFor(response);
+        }
+    }
+    
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getGeneralExceptionFor(ClientResponse response) {
         switch (response.getStatus()) {
+            case 400:
+                return new TerrastoreRequestException(400, (String) response.getEntity(String.class));
             case 500:
+                if (StringUtils.isNotBlank((String) response.getEntity(String.class))) {
+                    return new TerrastoreRequestException(500, (String) response.getEntity(String.class));
+                }
                 return new TerrastoreServerException("Unexpected server error.");
             case 503:
                 return new ClusterUnavailableException("The server cluster, or parts of the cluster, is not not available.");

@@ -17,21 +17,19 @@
 package terrastore.client.connection;
 
 import terrastore.client.TerrastoreClientException;
+import terrastore.client.TerrastoreRequestException;
 
 /**
  * @author Sven Johansson
  *  
  */
-public class KeyNotFoundException extends TerrastoreClientException {
+public class KeyNotFoundException extends TerrastoreRequestException {
 
     private static final long serialVersionUID = -4730815647522592173L;
 
-    public KeyNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    public KeyNotFoundException(String message) {
+        super(404, message);
     }
 
-    public KeyNotFoundException(String message) {
-        super(message);
-    }
     
 }

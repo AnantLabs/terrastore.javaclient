@@ -20,7 +20,6 @@ import terrastore.client.BucketOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
 import terrastore.client.connection.KeyNotFoundException;
-import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 
 import java.io.File;
@@ -65,7 +64,7 @@ public class TerrastorePojoTest {
     @Before
     public void setUp() throws Exception {
         client = new TerrastoreClient("http://127.0.0.1:8080", new HTTPConnectionFactory());
-
+        
         tearDown();    // Clean everything first
 
         lindex = new Customer("Lindex");
@@ -241,7 +240,7 @@ public class TerrastorePojoTest {
         assertEquals(home.getStreet(), newHome.getStreet());
     }
 
-    @Test(expected = TerrastoreConnectionException.class)
+    @Test(expected = TerrastoreClientException.class)
     public void testPutAddress2GetAddress() throws TerrastoreClientException {
         BucketOperation addressBucket = client.bucket(ADDRESSES_BUCKET);
 
