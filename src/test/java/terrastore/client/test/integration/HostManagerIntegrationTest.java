@@ -24,6 +24,7 @@ import terrastore.client.connection.OrderedHostManager;
 import terrastore.client.connection.SingleHostManager;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
+import terrastore.server.EmbeddedServerWrapper;
 import static org.junit.Assert.*;
 
 /**
@@ -31,6 +32,18 @@ import static org.junit.Assert.*;
  */
 public class HostManagerIntegrationTest {
 
+    private static EmbeddedServerWrapper server;
+    
+    @BeforeClass
+    public static void startEmbeddedServer() throws Exception {
+        server = new EmbeddedServerWrapper();
+    }
+    
+    @AfterClass
+    public static void stopEmbeddedServer() throws Exception {
+        server.stop();
+    }
+    
     @Test
     public void testSingleHostManagerAlwaysConnectsToTheSameHost() {
         TerrastoreClient client = new TerrastoreClient(new SingleHostManager("http://localhost:9000"), new HTTPConnectionFactory());

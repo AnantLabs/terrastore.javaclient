@@ -27,11 +27,14 @@ import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import terrastore.client.TerrastoreClient;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 import terrastore.client.mapping.JsonObjectDescriptor;
+import terrastore.server.EmbeddedServerWrapper;
 
 /**
  * @author Sven Johansson
@@ -40,6 +43,18 @@ import terrastore.client.mapping.JsonObjectDescriptor;
 public class TerrastoreClientWithCustomDescriptorIntegrationTest {
 
     private static final TestValue CUSTOM_TEST_VALUE = new TestValue("value");
+
+    private static EmbeddedServerWrapper server;
+    
+    @BeforeClass
+    public static void startEmbeddedServer() throws Exception {
+        server = new EmbeddedServerWrapper();
+    }
+    
+    @AfterClass
+    public static void stopEmbeddedServer() throws Exception {
+        server.stop();
+    }
 
     @Test
     public void testPutThenGetWithCustomDescriptor() throws Exception {
