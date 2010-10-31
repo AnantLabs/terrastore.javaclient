@@ -532,11 +532,9 @@ public class HTTPConnection implements Connection {
 
     @SuppressWarnings("unchecked")
     private TerrastoreClientException getExceptionForConditionalOperation(ClientResponse response, ConditionalOperation.Context context) {
-        ErrorMessage message = (ErrorMessage) response.getEntity(ErrorMessage.class);
-        
         switch (response.getStatus()) {
             case 400:
-                return new TerrastoreRequestException(message);
+                return new TerrastoreRequestException((ErrorMessage) response.getEntity(ErrorMessage.class));
             case 404:
                 return new UnsatisfiedConditionException("The condition/predicate '" + context.getPredicate() + "' could not be satsified for key '" + context.getKey() + "'");
             case 409:
