@@ -27,7 +27,9 @@ import java.util.Set;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import terrastore.client.BucketOperation;
@@ -40,6 +42,7 @@ import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.UnsatisfiedConditionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 import terrastore.client.mapreduce.MapReduceQuery;
+import terrastore.server.EmbeddedServerWrapper;
 
 /**
  * @author Sergio Bossa
@@ -60,6 +63,18 @@ public class TerrastoreClientIntegrationTest {
     private BucketOperation bucket1;
     private BucketOperation bucket2;
 
+    private static EmbeddedServerWrapper server;
+    
+    @BeforeClass
+    public static void startEmbeddedServer() throws Exception {
+        server = new EmbeddedServerWrapper();
+    }
+    
+    @AfterClass
+    public static void stopEmbeddedServer() throws Exception {
+        server.stop();
+    }
+    
     @Before
     public void setUp() throws Exception {
         client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory());
