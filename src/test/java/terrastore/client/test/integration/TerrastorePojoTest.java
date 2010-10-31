@@ -19,7 +19,7 @@ import org.junit.*;
 import terrastore.client.BucketOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
-import terrastore.client.connection.KeyNotFoundException;
+import terrastore.client.connection.NoSuchKeyException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 
 import java.io.File;
@@ -96,7 +96,7 @@ public class TerrastorePojoTest {
         assertFalse(lindex.getPhoneNumbers().get(0) == lindexFromStore.getPhoneNumbers().get(0));  // Not the same
     }
 
-    @Test(expected = KeyNotFoundException.class)
+    @Test(expected = NoSuchKeyException.class)
     public void testAddThenDelete() throws Exception {
         BucketOperation customersBucket = client.bucket(CUSTOMERS_BUCKET);
 

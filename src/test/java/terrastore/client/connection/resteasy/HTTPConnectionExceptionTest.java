@@ -30,7 +30,8 @@ import static org.junit.Assert.*;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
 import terrastore.client.TerrastoreRequestException;
-import terrastore.client.connection.KeyNotFoundException;
+import terrastore.client.connection.NoSuchKeyException;
+import terrastore.client.connection.MapReduceQueryException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.mapreduce.MapReduceQuery;
 import terrastore.client.test.pojostest.Address;
@@ -76,7 +77,7 @@ public class HTTPConnectionExceptionTest {
             verifyTerrastoreConnectionException(e);
         }
     }
-    
+
     @Test
     public void testPutValue_no_value() {
         try {
@@ -107,7 +108,7 @@ public class HTTPConnectionExceptionTest {
            client.bucket("bucket").mapReduce(query).execute(String.class);
            fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e, 400);
+            verifyException(MapReduceQueryException.class, e, 400);
         }
     }
     
@@ -120,7 +121,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").mapReduce(query).execute(String.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e, 400);
+            verifyException(MapReduceQueryException.class, e, 400);
         }
     }
 
@@ -133,7 +134,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").mapReduce(query).execute(String.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e, 400);
+            verifyException(MapReduceQueryException.class, e, 400);
         }
     }
     
@@ -146,7 +147,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").mapReduce(query).execute(String.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyTerrastoreRequestException(e, 400);
+            verifyException(MapReduceQueryException.class, e, 400);
         }
     }
     
@@ -267,7 +268,7 @@ public class HTTPConnectionExceptionTest {
             client.bucket("bucket").key("value").update("make-funky").executeAndGet(PhoneNumber.class);
             fail("An exception was expected");
         } catch (Exception e) {
-            verifyException(KeyNotFoundException.class, e, 404);
+            verifyException(NoSuchKeyException.class, e, 404);
         }
     }
 

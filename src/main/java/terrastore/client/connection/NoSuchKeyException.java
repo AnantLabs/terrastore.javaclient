@@ -22,12 +22,13 @@ import terrastore.client.TerrastoreRequestException;
  * @author Sven Johansson
  *  
  */
-public class UnsatisfiedConditionException extends TerrastoreRequestException {
+public class NoSuchKeyException extends TerrastoreRequestException {
 
-    private static final long serialVersionUID = 3152412705157825373L;
+    private static final long serialVersionUID = -4730815647522592173L;
 
-    public UnsatisfiedConditionException(ErrorMessage message) {
+    public NoSuchKeyException(ErrorMessage message) {
         super(message);
     }
 
+    
 }

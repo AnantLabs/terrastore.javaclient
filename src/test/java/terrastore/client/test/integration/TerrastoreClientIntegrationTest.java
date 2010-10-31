@@ -37,7 +37,7 @@ import terrastore.client.ClusterStats;
 import terrastore.client.KeyOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
-import terrastore.client.connection.KeyNotFoundException;
+import terrastore.client.connection.NoSuchKeyException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.UnsatisfiedConditionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
@@ -157,13 +157,13 @@ public class TerrastoreClientIntegrationTest {
             bucket.key("key1").conditional("jxpath:/notFound").get(TestValue.class);
     }
 
-    @Test(expected = KeyNotFoundException.class)
+    @Test(expected = NoSuchKeyException.class)
     public void testGetValueNotFoundFromExistingBucketThrowsException() throws Exception {
         bucket.key("value").put(TEST_VALUE_1);
             bucket.key("not_found").get(TestValue.class);
     }
 
-    @Test(expected = KeyNotFoundException.class)
+    @Test(expected = NoSuchKeyException.class)
     public void testGetValueNotFoundFromNonExistingBucketThrowsException() throws Exception {
             bucket.key("not_found").get(TestValue.class);
     }

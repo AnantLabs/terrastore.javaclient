@@ -1,5 +1,5 @@
 /**
- * Copyright 2009-2010 Sergio Bossa (sergio.bossa@gmail.com)
+ * Copyright 2009 - 2010 Sergio Bossa (sergio.bossa@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,15 +20,13 @@ import terrastore.client.TerrastoreRequestException;
 
 /**
  * @author Sven Johansson
- *  
  */
-public class KeyNotFoundException extends TerrastoreRequestException {
+public class MapReduceQueryException extends TerrastoreRequestException {
 
-    private static final long serialVersionUID = -4730815647522592173L;
+    private static final long serialVersionUID = 4260101744206901889L;
 
-    public KeyNotFoundException(ErrorMessage message) {
+    public MapReduceQueryException(ErrorMessage message) {
         super(message);
     }
 
-    
 }
