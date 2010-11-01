@@ -235,7 +235,7 @@ public class HTTPConnectionExceptionTest {
     @Test
     public void testExportBackup_invalid_file_name() {
         try {
-            client.bucket("bucket").backup().secretKey("SECRET-KEY").file("$£1@$/££.?$").executeExport();
+            client.bucket("bucket").backup().secretKey("SECRET-KEY").file("???/???.??").executeExport();
             fail("An exception was expected");
         } catch (Exception e) {
             verifyTerrastoreRequestException(e, 500);
