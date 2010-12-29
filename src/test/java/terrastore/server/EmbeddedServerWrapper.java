@@ -45,7 +45,6 @@ public class EmbeddedServerWrapper {
         server = new TerrastoreEmbeddedServer();
         server.start(host, port);
         createBackupDir();
-        Thread.sleep(3000);
     }
     
     public void stop() throws Exception {
