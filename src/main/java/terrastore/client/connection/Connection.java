@@ -27,6 +27,7 @@ import terrastore.client.TerrastoreClientException;
 import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
+import terrastore.client.RangeOperation.Context;
 import terrastore.client.mapreduce.MapReduceOperation;
 
 /**
@@ -97,6 +98,11 @@ public interface Connection {
             throws TerrastoreClientException;
 
     /**
+     * Executes a range based remove command and returns the removed key set
+     */
+    Set<String> removeByRange(Context context);
+    
+    /**
      * Executes a predicate query on all values and returns the results as a Values/Map.
      */
     <T> Values<T> queryByPredicate(PredicateOperation.Context context, Class<T> type)
@@ -122,5 +128,7 @@ public interface Connection {
      * Execute an atomic update and returns the updated value.
      */
     <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException;
+
+  
 
 }

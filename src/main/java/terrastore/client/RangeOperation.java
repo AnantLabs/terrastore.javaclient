@@ -15,6 +15,8 @@
  */
 package terrastore.client;
 
+import java.util.Set;
+
 import terrastore.client.connection.Connection;
 
 /**
@@ -121,6 +123,10 @@ public class RangeOperation extends AbstractOperation {
      */
     public <T> Values<T> get(Class<T> type) throws TerrastoreClientException {
         return connection.queryByRange(new Context(), type);
+    }
+    
+    public Set<String> remove() throws TerrastoreClientException {
+        return connection.removeByRange(new Context());
     }
 
     public class Context {

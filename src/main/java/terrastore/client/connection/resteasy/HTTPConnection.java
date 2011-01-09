@@ -18,6 +18,7 @@ package terrastore.client.connection.resteasy;
 import static org.jboss.resteasy.plugins.providers.RegisterBuiltin.registerProviders;
 
 import java.net.ConnectException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +45,7 @@ import terrastore.client.TerrastoreClientException;
 import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
+import terrastore.client.RangeOperation.Context;
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.HostManager;
 import terrastore.client.connection.TerrastoreConnectionException;
@@ -326,18 +328,7 @@ public class HTTPConnection implements Connection {
         ClientRequest request = null;
         ClientResponse<Values<T>> response = null;
         try {
-            UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
-                    queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
-            if (null != context.getComparator()) {
-                uriBuilder.queryParam("comparator", context.getComparator());
-            }
-            if (null != context.getEndKey()) {
-                uriBuilder.queryParam("endKey", context.getEndKey());
-            }
-            if (null != context.getPredicate()) {
-                uriBuilder.queryParam("predicate", context.getPredicate());
-            }
-            String requestUri = uriBuilder.build().toString();
+            String requestUri = buildRangeURI(context, serverHost);
             request = requestFactory.createRequest(requestUri);
             response = request.accept(JSON_CONTENT_TYPE).get();
             if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
@@ -354,6 +345,48 @@ public class HTTPConnection implements Connection {
                 response.releaseConnection();
             }
         }
+    }
+
+    @Override
+    public Set<String> removeByRange(RangeOperation.Context context) {
+        String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<String> response = null;
+        try {
+            String requestUri = buildRangeURI(context, serverHost);
+            request = requestFactory.createRequest(requestUri);
+            response = request.accept(JSON_CONTENT_TYPE).delete();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(HashSet.class);
+            } else {
+                throw exceptionTranslator.generalException(response);
+            }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw getClientSideException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
+        } 
+    }
+
+    private String buildRangeURI(RangeOperation.Context context,
+            String serverHost) {
+        UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
+                queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
+        if (null != context.getComparator()) {
+            uriBuilder.queryParam("comparator", context.getComparator());
+        }
+        if (null != context.getEndKey()) {
+            uriBuilder.queryParam("endKey", context.getEndKey());
+        }
+        if (null != context.getPredicate()) {
+            uriBuilder.queryParam("predicate", context.getPredicate());
+        }
+        String requestUri = uriBuilder.build().toString();
+        return requestUri;
     }
 
     @SuppressWarnings("unchecked")

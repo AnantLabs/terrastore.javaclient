@@ -37,6 +37,7 @@ import terrastore.client.ClusterStats;
 import terrastore.client.KeyOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
+import terrastore.client.Values;
 import terrastore.client.connection.NoSuchKeyException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.UnsatisfiedConditionException;
@@ -154,18 +155,18 @@ public class TerrastoreClientIntegrationTest {
     @Test(expected = UnsatisfiedConditionException.class)
     public void testConditionallyGetValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
         bucket.key("key1").put(TEST_VALUE_1);
-            bucket.key("key1").conditional("jxpath:/notFound").get(TestValue.class);
+        bucket.key("key1").conditional("jxpath:/notFound").get(TestValue.class);
     }
 
     @Test(expected = NoSuchKeyException.class)
     public void testGetValueNotFoundFromExistingBucketThrowsException() throws Exception {
         bucket.key("value").put(TEST_VALUE_1);
-            bucket.key("not_found").get(TestValue.class);
+        bucket.key("not_found").get(TestValue.class);
     }
 
     @Test(expected = NoSuchKeyException.class)
     public void testGetValueNotFoundFromNonExistingBucketThrowsException() throws Exception {
-            bucket.key("not_found").get(TestValue.class);
+        bucket.key("not_found").get(TestValue.class);
     }
 
     @Test
@@ -278,6 +279,81 @@ public class TerrastoreClientIntegrationTest {
         Map<String, TestValue> result = bucket.range("lexical-asc").from("key2").to("key3").predicate("jxpath:/value").get(TestValue.class);
         assertNotNull(result);
         assertEquals(0, result.size());
+    }
+    
+    @Test
+    public void testDoRangeBasedDeleteWithNoPredicate() throws Exception {
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key2").put(TEST_VALUE_2);
+        bucket.key("key3").put(TEST_VALUE_3);
+        bucket.key("key4").put(TEST_VALUE_1);
+        
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster to propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
+        
+        Set<String> removedKeys = bucket.range("lexical-asc").from("key2").to("key3").remove();
+        Map<String, TestValue> remainingContents = bucket.values().get(TestValue.class);
+        
+        assertEquals(2, removedKeys.size());
+        assertTrue(removedKeys.contains("key2"));
+        assertTrue(removedKeys.contains("key3"));
+        
+        assertEquals(2, remainingContents.size());
+        assertTrue(remainingContents.containsKey("key1"));
+        assertTrue(remainingContents.containsKey("key4"));
+    }
+    
+    @Test
+    public void testDoRangeBasedDeleteWithNoEndKey() throws Exception {
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key2").put(TEST_VALUE_2);
+        bucket.key("key3").put(TEST_VALUE_3);
+        bucket.key("key4").put(TEST_VALUE_1);
+        
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster to propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
+        
+        Set<String> removedKeys = bucket.range("lexical-asc").from("key1").to("key4").predicate("jxpath:/value[.='value_1']").remove();
+        Map<String, TestValue> remainingContents = bucket.values().get(TestValue.class);
+        
+        assertEquals(2, removedKeys.size());
+        assertTrue(removedKeys.contains("key1"));
+        assertTrue(removedKeys.contains("key4"));
+        
+        assertEquals(2, remainingContents.size());
+        assertTrue(remainingContents.containsKey("key2"));
+        assertTrue(remainingContents.containsKey("key3"));
+    }
+    
+    @Test
+    public void testDoRangeBasedDeleteWithPredicate() throws Exception {
+        bucket.key("key1").put(TEST_VALUE_1);
+        bucket.key("key2").put(TEST_VALUE_2);
+        bucket.key("key3").put(TEST_VALUE_3);
+        bucket.key("key4").put(TEST_VALUE_1);
+        
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster to propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
+        
+        Set<String> removedKeys = bucket.range("lexical-asc").from("key2").remove();
+        Map<String, TestValue> remainingContents = bucket.values().get(TestValue.class);
+        
+        assertEquals(3, removedKeys.size());
+        assertTrue(removedKeys.contains("key2"));
+        assertTrue(removedKeys.contains("key3"));
+        assertTrue(removedKeys.contains("key4"));
+        
+        assertEquals(1, remainingContents.size());
+        assertTrue(remainingContents.containsKey("key1"));
     }
 
     @Test
