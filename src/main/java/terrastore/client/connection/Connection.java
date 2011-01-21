@@ -100,7 +100,8 @@ public interface Connection {
     /**
      * Executes a range based remove command and returns the removed key set
      */
-    Set<String> removeByRange(Context context);
+    Set<String> removeByRange(Context context)
+            throws TerrastoreClientException;
     
     /**
      * Executes a predicate query on all values and returns the results as a Values/Map.

@@ -348,7 +348,7 @@ public class HTTPConnection implements Connection {
     }
 
     @Override
-    public Set<String> removeByRange(RangeOperation.Context context) {
+    public Set<String> removeByRange(RangeOperation.Context context) throws TerrastoreClientException {
         String serverHost = hostManager.getHost();
         ClientRequest request = null;
         ClientResponse<String> response = null;
