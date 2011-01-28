@@ -29,6 +29,7 @@ import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
 import terrastore.client.RangeOperation.Context;
 import terrastore.client.mapreduce.MapReduceOperation;
+import terrastore.client.merge.MergeOperation;
 
 /**
  * Connection interface for Terrastore server operations.
@@ -130,6 +131,8 @@ public interface Connection {
      */
     <T> T executeUpdate(UpdateOperation.Context context, Class<T> type) throws TerrastoreClientException;
 
-  
-
+    /**
+     * Execute a merge operation and return the merged value.
+     */
+    <T> T executeMerge(MergeOperation.Context context, Class<T> type) throws TerrastoreClientException;
 }

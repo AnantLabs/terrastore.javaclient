@@ -21,6 +21,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,12 +39,12 @@ import terrastore.client.ClusterStats;
 import terrastore.client.KeyOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
-import terrastore.client.Values;
 import terrastore.client.connection.NoSuchKeyException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.UnsatisfiedConditionException;
 import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 import terrastore.client.mapreduce.MapReduceQuery;
+import terrastore.client.merge.MergeDescriptor;
 import terrastore.server.EmbeddedServerWrapper;
 
 /**
@@ -55,6 +57,8 @@ public class TerrastoreClientIntegrationTest {
     private static final TestValue TEST_VALUE_2 = new TestValue("value_2");
     private static final TestValue TEST_VALUE_3 = new TestValue("value_3");
     private static final TestValue TEST_VALUE_NULL = new TestValue(null);
+
+    private static final TupleTestValue TEST_VALUE_MERGED = new TupleTestValue("value1", "value2");
     
     private static final TupleTestValue TUPLE_TEST_VALUE_1 = new TupleTestValue("value_1-1", "value_1-2");
     private static final TupleTestValue TUPLE_TEST_VALUE_2 = new TupleTestValue("value_2-1", "value_1-2");
@@ -433,25 +437,6 @@ public class TerrastoreClientIntegrationTest {
     }
     
     @Test
-    public void testExecuteMergeUpdate() throws Exception {
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("value1", "value_2-1");
-
-        KeyOperation key = bucket.key("key1");
-        key.put(TUPLE_TEST_VALUE_1);
-        
-        assertEquals(TUPLE_TEST_VALUE_2, key.update("merge").parameters(parameters).timeOut(1000L).executeAndGet(TupleTestValue.class));
-    }
-    
-    @Test
-    public void testExecuteMergeUpdateWithNoParameters() throws Exception {
-        KeyOperation key = bucket.key("key1");
-        key.put(TUPLE_TEST_VALUE_1);
-        
-        assertEquals(TUPLE_TEST_VALUE_1, key.update("merge").timeOut(1000L).executeAndGet(TupleTestValue.class));
-    }
-    
-    @Test
     public void testExecuteAtomicCounterUpdate() throws Exception {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("value", "15");
@@ -465,16 +450,33 @@ public class TerrastoreClientIntegrationTest {
     @Test
     public void testExecuteJsFunction() throws Exception {
         Map<String, Object> params = new HashMap<String, Object>();
-        String f = "function update(key, value, params) {"
+        String f = "function(key, value, params) {"
                 + "   if(value['value'] == 'value_1') value['value'] = 'value_2';"
                 + "   return value;"
                 + "}";
-        params.put("update", f);
+        params.put("function", f);
 
         KeyOperation key = bucket.key("key1");
         key.put(TEST_VALUE_1);
 
         assertEquals(TEST_VALUE_2, key.update("js").timeOut(1000L).parameters(params).executeAndGet(TestValue.class));
+    }
+
+    @Test
+    public void testExecuteMerge() throws Exception {
+        Set<String> keysToRemove = new HashSet<String>();
+        keysToRemove.add("value");
+        Map<String, Object> entriesToAdd = new HashMap<String, Object>();
+        entriesToAdd.put("value1", "value1");
+        entriesToAdd.put("value2", "value2");
+
+        MergeDescriptor descriptor = new MergeDescriptor().add(entriesToAdd).remove(keysToRemove);
+
+        KeyOperation key = bucket.key("key");
+
+        key.put(TEST_VALUE_1);
+
+        assertEquals(TEST_VALUE_MERGED, key.merge(descriptor).execute(TupleTestValue.class));
     }
 
     @Test

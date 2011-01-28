@@ -16,6 +16,8 @@
 package terrastore.client;
 
 import terrastore.client.connection.Connection;
+import terrastore.client.merge.MergeDescriptor;
+import terrastore.client.merge.MergeOperation;
 
 /**
  * @author Sven Johansson
@@ -85,6 +87,15 @@ public class KeyOperation extends AbstractOperation {
      */
     public UpdateOperation update(String function) {
         return new UpdateOperation(connection, bucket, key, function);
+    }
+
+    /**
+     * Sets up a {@link terrastore.client.merge.MergeOperation} for the value of the current key.
+     *
+     * @return a MergeOperation for the current key.
+     */
+    public MergeOperation merge(MergeDescriptor descriptor) {
+        return new MergeOperation(connection, bucket, key, descriptor);
     }
     
     /**

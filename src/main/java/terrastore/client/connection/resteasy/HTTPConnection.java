@@ -45,7 +45,6 @@ import terrastore.client.TerrastoreClientException;
 import terrastore.client.UpdateOperation;
 import terrastore.client.Values;
 import terrastore.client.ValuesOperation;
-import terrastore.client.RangeOperation.Context;
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.HostManager;
 import terrastore.client.connection.TerrastoreConnectionException;
@@ -58,6 +57,7 @@ import terrastore.client.mapping.JsonObjectWriter;
 import terrastore.client.mapping.JsonParametersWriter;
 import terrastore.client.mapping.JsonValuesReader;
 import terrastore.client.mapreduce.MapReduceOperation;
+import terrastore.client.merge.MergeOperation;
 
 /**
  * Handles connections to Terrastore servers using the RESTEasy Client API
@@ -369,7 +369,7 @@ public class HTTPConnection implements Connection {
             if (response != null) {
                 response.releaseConnection();
             }
-        } 
+        }
     }
 
     private String buildRangeURI(RangeOperation.Context context,
@@ -416,7 +416,7 @@ public class HTTPConnection implements Connection {
             }
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> T queryByMapReduce(MapReduceOperation.Context context, Class<T> returnType) {
@@ -520,6 +520,32 @@ public class HTTPConnection implements Connection {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T executeMerge(MergeOperation.Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<T> response = null;
+        try {
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path(context.getKey()).path("merge").build().toString();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, context.getDescriptor()).post();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(type);
+            } else {
+                throw exceptionTranslator.translate(Operation.MERGE, response);
+            }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw getClientSideException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
+        }
+    }
+
     private ClientRequest getStatsRequest(String serverHost, String stats) {
         String requestUri = UriBuilder.fromUri(serverHost).path("_stats").path(stats).build().toString();
         ClientRequest request = requestFactory.createRequest(requestUri);
@@ -544,7 +570,7 @@ public class HTTPConnection implements Connection {
             hostManager.suspect(serverHost);
             return new TerrastoreConnectionException("Unable to connect to: " + serverHost, serverHost, e);
         }
-        
+
         return new TerrastoreClientException("Could not service your request: " + e, e);
     }
 

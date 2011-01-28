@@ -37,7 +37,8 @@ public class ExceptionTranslator {
     public enum Operation {
         GET,
         CONDITIONAL,
-        MAP_REDUCE, 
+        MAP_REDUCE,
+        MERGE,
         UPDATE
     }
     
@@ -81,6 +82,16 @@ public class ExceptionTranslator {
     
     @SuppressWarnings("unchecked")
     private TerrastoreClientException updateException(ClientResponse response) {
+        switch (response.getStatus()) {
+            case 404:
+                return new NoSuchKeyException((ErrorMessage) response.getEntity(ErrorMessage.class));
+            default:
+                return generalException(response);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private TerrastoreClientException mergeException(ClientResponse response) {
         switch (response.getStatus()) {
             case 404:
                 return new NoSuchKeyException((ErrorMessage) response.getEntity(ErrorMessage.class));
