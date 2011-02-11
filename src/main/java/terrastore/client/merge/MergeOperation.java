@@ -15,8 +15,12 @@
  */
 package terrastore.client.merge;
 
+import terrastore.client.TerrastoreClientException;
 import terrastore.client.connection.Connection;
 
+/**
+ * @author Sergio Bossa
+ */
 public class MergeOperation {
 
     private final Connection connection;
@@ -31,7 +35,15 @@ public class MergeOperation {
         this.descriptor = descriptor;
     }
 
-    public <T> T execute(Class<T> returnType) {
+    /**
+     * Executes the merge update, and returns the updated document as an instance of the specified type.
+     *
+     * @param <T> The Java type for the returned document.
+     * @param type The Java class for the returned document.
+     * @return The updated document, as an instance of <T>/type
+     * @throws TerrastoreClientException
+     */
+    public <T> T executeAndGet(Class<T> returnType) throws TerrastoreClientException {
         return connection.executeMerge(new Context(), returnType);
     }
 

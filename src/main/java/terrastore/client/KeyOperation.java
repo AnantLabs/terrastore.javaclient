@@ -82,7 +82,8 @@ public class KeyOperation extends AbstractOperation {
 
     /**
      * Sets up an {@link UpdateOperation} for the value of the current key.
-     * 
+     *
+     * @param function The name of the update function to invoke.
      * @return an UpdateOperation for the current key.
      */
     public UpdateOperation update(String function) {
@@ -90,8 +91,9 @@ public class KeyOperation extends AbstractOperation {
     }
 
     /**
-     * Sets up a {@link terrastore.client.merge.MergeOperation} for the value of the current key.
+     * Sets up a {@link terrastore.client.merge.MergeOperation} for the document at the current key.
      *
+     * @param descriptor The merge descriptor.
      * @return a MergeOperation for the current key.
      */
     public MergeOperation merge(MergeDescriptor descriptor) {

@@ -454,12 +454,12 @@ public class TerrastoreClientIntegrationTest {
                 + "   if(value['value'] == 'value_1') value['value'] = 'value_2';"
                 + "   return value;"
                 + "}";
-        params.put("function", f);
+        params.put("updater", f);
 
         KeyOperation key = bucket.key("key1");
         key.put(TEST_VALUE_1);
 
-        assertEquals(TEST_VALUE_2, key.update("js").timeOut(1000L).parameters(params).executeAndGet(TestValue.class));
+        assertEquals(TEST_VALUE_2, key.update("js-updater").timeOut(1000L).parameters(params).executeAndGet(TestValue.class));
     }
 
     @Test
@@ -476,7 +476,7 @@ public class TerrastoreClientIntegrationTest {
 
         key.put(TEST_VALUE_1);
 
-        assertEquals(TEST_VALUE_MERGED, key.merge(descriptor).execute(TupleTestValue.class));
+        assertEquals(TEST_VALUE_MERGED, key.merge(descriptor).executeAndGet(TupleTestValue.class));
     }
 
     @Test
