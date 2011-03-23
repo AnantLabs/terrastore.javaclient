@@ -49,7 +49,6 @@ import terrastore.client.connection.Connection;
 import terrastore.client.connection.HostManager;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.resteasy.ExceptionTranslator.Operation;
-import terrastore.client.mapping.JsonBucketsReader;
 import terrastore.client.mapping.JsonClusterStatsReader;
 import terrastore.client.mapping.JsonObjectDescriptor;
 import terrastore.client.mapping.JsonObjectReader;
@@ -91,7 +90,6 @@ public class HTTPConnection implements Connection {
             // Registration order matters: JsonObjectReader must come last because reads all:
             providerFactory.addMessageBodyReader(new JsonClusterStatsReader());
             providerFactory.addMessageBodyReader(new JsonValuesReader(descriptors));
-            providerFactory.addMessageBodyReader(new JsonBucketsReader());
             providerFactory.addMessageBodyReader(new JsonObjectReader(descriptors));
 
             registerProviders(providerFactory);
