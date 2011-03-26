@@ -113,7 +113,7 @@ public class RangeOperation extends AbstractOperation {
     }
 
     /**
-     * Executes this RangeOperation and returns a Values-map of the specified range
+     * Executes this RangeOperation and returns values from the specified range
      * selection.
      * 
      * @param <T> The Java type of the values in the current bucket.

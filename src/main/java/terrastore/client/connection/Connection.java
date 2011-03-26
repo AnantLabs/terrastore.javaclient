@@ -18,6 +18,7 @@ package terrastore.client.connection;
 import java.util.Set;
 
 import terrastore.client.BackupOperation;
+import terrastore.client.BulkOperation;
 import terrastore.client.ClusterStats;
 import terrastore.client.ConditionalOperation;
 import terrastore.client.KeyOperation;
@@ -135,4 +136,14 @@ public interface Connection {
      * Execute a merge operation and return the merged value.
      */
     <T> T executeMerge(MergeOperation.Context context, Class<T> type) throws TerrastoreClientException;
+
+    /**
+     * Executes a bulk put operation and returns the keys whose values have been actually inserted.
+     */
+    Set<String> bulkPut(BulkOperation.Context context) throws TerrastoreClientException;
+
+    /**
+     * Executes a bulk get operation and returns all values corresponding to the given keys.
+     */
+    <T> Values<T> bulkGet(BulkOperation.Context context, Class<T> type) throws TerrastoreClientException;
 }

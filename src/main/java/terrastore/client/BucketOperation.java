@@ -125,4 +125,8 @@ public class BucketOperation extends AbstractOperation {
     public MapReduceOperation mapReduce(MapReduceQuery query) {
         return new MapReduceOperation(connection, bucket, query);
     }
+
+    public BulkOperation bulk() {
+        return new BulkOperation(connection, bucket);
+    }
 }

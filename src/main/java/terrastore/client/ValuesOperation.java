@@ -15,7 +15,6 @@
  */
 package terrastore.client;
 
-import java.util.Map;
 import terrastore.client.connection.Connection;
 
 /**
@@ -64,7 +63,7 @@ public class ValuesOperation extends AbstractOperation {
      * @return A Map of keys and values.
      * @throws TerrastoreClientException if the operation fails for any reason.
      */
-    public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> get(Class<T> type) throws TerrastoreClientException {
         return connection.getAllValues(new Context(), type);
     }
 

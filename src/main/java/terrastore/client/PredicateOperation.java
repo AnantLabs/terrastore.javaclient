@@ -15,7 +15,6 @@
  */
 package terrastore.client;
 
-import java.util.Map;
 
 import terrastore.client.connection.Connection;
 
@@ -49,7 +48,7 @@ public class PredicateOperation extends AbstractOperation {
      * @return A Map of matching keys and values.
      * @throws TerrastoreClientException if the request is invalid, ie due to an incorrect predicate syntax.
      */
-    public <T> Map<String, T> get(Class<T> type) throws TerrastoreClientException {
+    public <T> Values<T> get(Class<T> type) throws TerrastoreClientException {
         return connection.queryByPredicate(new Context(), type);
     }
 

@@ -16,20 +16,16 @@
 package terrastore.client.mapping;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
+import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.deser.CustomDeserializerFactory;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
@@ -41,12 +37,12 @@ import terrastore.client.Values;
  * @author Sergio Bossa
  */
 @Provider
-@Consumes("application/json")
-public class JsonValuesReader implements MessageBodyReader<Values> {
+@Produces("application/json")
+public class JsonValuesWriter implements MessageBodyWriter<Values> {
 
     private final ObjectMapper jsonMapper;
 
-    public JsonValuesReader(List<? extends JsonObjectDescriptor> descriptors) {
+    public JsonValuesWriter(List<? extends JsonObjectDescriptor> descriptors) {
         CustomSerializerFactory serializerFactory = new CustomSerializerFactory();
         CustomDeserializerFactory deserializerFactory = new CustomDeserializerFactory();
         for (JsonObjectDescriptor descriptor : descriptors) {
@@ -59,22 +55,18 @@ public class JsonValuesReader implements MessageBodyReader<Values> {
     }
 
     @Override
-    public boolean isReadable(Class type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return Values.class.isAssignableFrom(type);
     }
 
     @Override
-    public Values readFrom(Class type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
-        Map<String, Object> result = new LinkedHashMap<String, Object>();
-        JsonParser jsonParser = jsonMapper.getJsonFactory().createJsonParser(entityStream);
-        jsonParser.nextToken();
-        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-            String name = jsonParser.getCurrentName();
-            jsonParser.nextToken();
-            Object value = jsonParser.readValueAs((Class) genericType);
-            result.put(name, value);
-        }
-        return new Values(result);
+    public long getSize(Values values, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+        return -1;
+    }
+
+    @Override
+    public void writeTo(Values values, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+        jsonMapper.writeValue(entityStream, values);
     }
 
 }

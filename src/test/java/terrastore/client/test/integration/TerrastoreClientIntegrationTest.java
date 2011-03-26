@@ -38,6 +38,7 @@ import terrastore.client.ClusterStats;
 import terrastore.client.KeyOperation;
 import terrastore.client.TerrastoreClient;
 import terrastore.client.TerrastoreClientException;
+import terrastore.client.Values;
 import terrastore.client.connection.NoSuchKeyException;
 import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.connection.UnsatisfiedConditionException;
@@ -45,6 +46,7 @@ import terrastore.client.connection.resteasy.HTTPConnectionFactory;
 import terrastore.client.mapreduce.MapReduceQuery;
 import terrastore.client.merge.MergeDescriptor;
 import terrastore.server.EmbeddedServerWrapper;
+import terrastore.util.collect.Sets;
 
 /**
  * @author Sergio Bossa
@@ -56,29 +58,25 @@ public class TerrastoreClientIntegrationTest {
     private static final TestValue TEST_VALUE_2 = new TestValue("value_2");
     private static final TestValue TEST_VALUE_3 = new TestValue("value_3");
     private static final TestValue TEST_VALUE_NULL = new TestValue(null);
-
     private static final TupleTestValue TEST_VALUE_MERGED = new TupleTestValue("value1", "value2");
-    
     private static final TupleTestValue TUPLE_TEST_VALUE_1 = new TupleTestValue("value_1-1", "value_1-2");
     private static final TupleTestValue TUPLE_TEST_VALUE_2 = new TupleTestValue("value_2-1", "value_1-2");
-    
     private TerrastoreClient client;
     private BucketOperation bucket;
     private BucketOperation bucket1;
     private BucketOperation bucket2;
-
     private static EmbeddedServerWrapper server;
-    
+
     @BeforeClass
     public static void startEmbeddedServer() throws Exception {
         server = new EmbeddedServerWrapper();
     }
-    
+
     @AfterClass
     public static void stopEmbeddedServer() throws Exception {
         server.stop();
     }
-    
+
     @Before
     public void setUp() throws Exception {
         client = new TerrastoreClient("http://localhost:8080", new HTTPConnectionFactory());
@@ -146,7 +144,7 @@ public class TerrastoreClientIntegrationTest {
     @Test(expected = UnsatisfiedConditionException.class)
     public void testConditionallyPutValueThrowsExceptionDueToUnsatisfiedCondition() throws Exception {
         bucket.key("key1").put(TEST_VALUE_1);
-            bucket.key("key1").conditional("jxpath:/notFound").put(TEST_VALUE_2);
+        bucket.key("key1").conditional("jxpath:/notFound").put(TEST_VALUE_2);
     }
 
     @Test
@@ -283,78 +281,78 @@ public class TerrastoreClientIntegrationTest {
         assertNotNull(result);
         assertEquals(0, result.size());
     }
-    
+
     @Test
     public void testDoRangeBasedDeleteWithNoPredicate() throws Exception {
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
         bucket.key("key4").put(TEST_VALUE_1);
-        
+
         /**
          * Sleep needed for operations comprising multiple keys, to allow the cluster to propagate keys information.
          */
         Thread.sleep(1000);
         //
-        
+
         Set<String> removedKeys = bucket.range("lexical-asc").from("key2").to("key3").remove();
         Map<String, TestValue> remainingContents = bucket.values().get(TestValue.class);
-        
+
         assertEquals(2, removedKeys.size());
         assertTrue(removedKeys.contains("key2"));
         assertTrue(removedKeys.contains("key3"));
-        
+
         assertEquals(2, remainingContents.size());
         assertTrue(remainingContents.containsKey("key1"));
         assertTrue(remainingContents.containsKey("key4"));
     }
-    
+
     @Test
     public void testDoRangeBasedDeleteWithNoEndKey() throws Exception {
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
         bucket.key("key4").put(TEST_VALUE_1);
-        
+
         /**
          * Sleep needed for operations comprising multiple keys, to allow the cluster to propagate keys information.
          */
         Thread.sleep(1000);
         //
-        
+
         Set<String> removedKeys = bucket.range("lexical-asc").from("key1").to("key4").predicate("jxpath:/value[.='value_1']").remove();
         Map<String, TestValue> remainingContents = bucket.values().get(TestValue.class);
-        
+
         assertEquals(2, removedKeys.size());
         assertTrue(removedKeys.contains("key1"));
         assertTrue(removedKeys.contains("key4"));
-        
+
         assertEquals(2, remainingContents.size());
         assertTrue(remainingContents.containsKey("key2"));
         assertTrue(remainingContents.containsKey("key3"));
     }
-    
+
     @Test
     public void testDoRangeBasedDeleteWithPredicate() throws Exception {
         bucket.key("key1").put(TEST_VALUE_1);
         bucket.key("key2").put(TEST_VALUE_2);
         bucket.key("key3").put(TEST_VALUE_3);
         bucket.key("key4").put(TEST_VALUE_1);
-        
+
         /**
          * Sleep needed for operations comprising multiple keys, to allow the cluster to propagate keys information.
          */
         Thread.sleep(1000);
         //
-        
+
         Set<String> removedKeys = bucket.range("lexical-asc").from("key2").remove();
         Map<String, TestValue> remainingContents = bucket.values().get(TestValue.class);
-        
+
         assertEquals(3, removedKeys.size());
         assertTrue(removedKeys.contains("key2"));
         assertTrue(removedKeys.contains("key3"));
         assertTrue(removedKeys.contains("key4"));
-        
+
         assertEquals(1, remainingContents.size());
         assertTrue(remainingContents.containsKey("key1"));
     }
@@ -402,10 +400,8 @@ public class TerrastoreClientIntegrationTest {
         Thread.sleep(1000);
         //
 
-        Map<String, Number> result = bucket.mapReduce(new MapReduceQuery()
-                .range(new MapReduceQuery.Range().from("key1").to("key2").timeToLive(10000))
-                .task(new MapReduceQuery.Task().mapper("size").reducer("size").timeout(10000)))
-                .execute(Map.class);
+        Map<String, Number> result = bucket.mapReduce(new MapReduceQuery().range(new MapReduceQuery.Range().from("key1").to("key2").timeToLive(10000)).task(new MapReduceQuery.Task().
+                mapper("size").reducer("size").timeout(10000))).execute(Map.class);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -434,7 +430,7 @@ public class TerrastoreClientIntegrationTest {
 
         assertEquals(TEST_VALUE_NULL, key.update("replace").timeOut(1000L).executeAndGet(TestValue.class));
     }
-    
+
     @Test
     public void testExecuteAtomicCounterUpdate() throws Exception {
         Map<String, Object> parameters = new HashMap<String, Object>();
@@ -442,7 +438,7 @@ public class TerrastoreClientIntegrationTest {
 
         KeyOperation key = bucket.key("key1");
         key.put(new TestValue("10"));
-        
+
         assertEquals(new TestValue("25"), key.update("counter").timeOut(1000L).parameters(parameters).executeAndGet(TestValue.class));
     }
 
@@ -494,18 +490,45 @@ public class TerrastoreClientIntegrationTest {
         bucket.backup().file("test.bak").secretKey("SECRET-KEY").executeImport();
         assertEquals(3, bucket.values().get(TestValue.class).size());
     }
-    
-    @Test(expected=TerrastoreConnectionException.class)
+
+    @Test(expected = TerrastoreConnectionException.class)
     public void testUnableToReachServer() throws Exception {
         client = new TerrastoreClient("http://localhost:9999", new HTTPConnectionFactory());
         client.bucket("bucket").key("value").put(TEST_VALUE_1);
+    }
+
+    @Test
+    public void testBulkPutGet() throws Exception {
+        Map<String, TestValue> values = new HashMap<String, TestValue>();
+
+        values.put("key1", TEST_VALUE_1);
+        values.put("key2", TEST_VALUE_2);
+        values.put("key3", TEST_VALUE_3);
+
+        client.bucket("bulkPutGet").bulk().put(new Values(values));
+
+        /**
+         * Sleep needed for operations comprising multiple keys, to allow the cluster propagate keys information.
+         */
+        Thread.sleep(1000);
+        //
+
+        values = client.bucket("bulkPutGet").bulk().get(Sets.hash("key1", "key2", "key3"), TestValue.class);
+        assertNotNull(values);
+        assertEquals(3, values.size());
+        assertTrue(values.containsKey("key1"));
+        assertTrue(values.containsKey("key2"));
+        assertTrue(values.containsKey("key3"));
+        assertTrue(values.containsValue(TEST_VALUE_1));
+        assertTrue(values.containsValue(TEST_VALUE_2));
+        assertTrue(values.containsValue(TEST_VALUE_3));
     }
 
     private Map getAsMap(TestValue value) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.<Map>readValue(mapper.writeValueAsString(value), Map.class);
     }
-    
+
     public static class TestValue {
 
         private String value;
@@ -541,18 +564,19 @@ public class TerrastoreClientIntegrationTest {
         public String toString() {
             return "TestValue [value=" + value + "]";
         }
+
     }
-    
+
     public static class TupleTestValue {
-        
+
         private String value1;
         private String value2;
-        
+
         public TupleTestValue(String value1, String value2) {
             this.value1 = value1;
             this.value2 = value2;
         }
-        
+
         protected TupleTestValue() {
         }
 
@@ -587,24 +611,32 @@ public class TerrastoreClientIntegrationTest {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (getClass() != obj.getClass()) {
                 return false;
+            }
             TupleTestValue other = (TupleTestValue) obj;
             if (value1 == null) {
-                if (other.value1 != null)
+                if (other.value1 != null) {
                     return false;
-            } else if (!value1.equals(other.value1))
+                }
+            } else if (!value1.equals(other.value1)) {
                 return false;
+            }
             if (value2 == null) {
-                if (other.value2 != null)
+                if (other.value2 != null) {
                     return false;
-            } else if (!value2.equals(other.value2))
+                }
+            } else if (!value2.equals(other.value2)) {
                 return false;
+            }
             return true;
         }
+
     }
 }

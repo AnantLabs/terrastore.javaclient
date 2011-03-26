@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import terrastore.client.BackupOperation;
+import terrastore.client.BulkOperation.Context;
 import terrastore.client.ClusterStats;
 import terrastore.client.ConditionalOperation;
 import terrastore.client.KeyOperation;
@@ -55,6 +56,7 @@ import terrastore.client.mapping.JsonObjectReader;
 import terrastore.client.mapping.JsonObjectWriter;
 import terrastore.client.mapping.JsonParametersWriter;
 import terrastore.client.mapping.JsonValuesReader;
+import terrastore.client.mapping.JsonValuesWriter;
 import terrastore.client.mapreduce.MapReduceOperation;
 import terrastore.client.merge.MergeOperation;
 
@@ -86,6 +88,7 @@ public class HTTPConnection implements Connection {
         try {
             // Registration order matters: JsonObjectWriter must come last because writes all:
             providerFactory.addMessageBodyWriter(new JsonParametersWriter());
+            providerFactory.addMessageBodyWriter(new JsonValuesWriter(descriptors));
             providerFactory.addMessageBodyWriter(new JsonObjectWriter(descriptors));
             // Registration order matters: JsonObjectReader must come last because reads all:
             providerFactory.addMessageBodyReader(new JsonClusterStatsReader());
@@ -370,23 +373,6 @@ public class HTTPConnection implements Connection {
         }
     }
 
-    private String buildRangeURI(RangeOperation.Context context,
-            String serverHost) {
-        UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
-                queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
-        if (null != context.getComparator()) {
-            uriBuilder.queryParam("comparator", context.getComparator());
-        }
-        if (null != context.getEndKey()) {
-            uriBuilder.queryParam("endKey", context.getEndKey());
-        }
-        if (null != context.getPredicate()) {
-            uriBuilder.queryParam("predicate", context.getPredicate());
-        }
-        String requestUri = uriBuilder.build().toString();
-        return requestUri;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public <T> Values<T> queryByPredicate(PredicateOperation.Context context, Class<T> type) throws TerrastoreClientException {
@@ -542,6 +528,73 @@ public class HTTPConnection implements Connection {
                 response.releaseConnection();
             }
         }
+    }
+
+    @Override
+    public <T> Values<T> bulkGet(Context context, Class<T> type) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<Values<T>> response = null;
+        try {
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("bulk").path("get").build().toString();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, context.getKeys()).post();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(Values.class, type);
+            } else {
+                throw exceptionTranslator.generalException(response);
+            }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw getClientSideException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
+        }
+    }
+
+    @Override
+    public Set<String> bulkPut(Context context) throws TerrastoreClientException {
+        String serverHost = hostManager.getHost();
+        ClientRequest request = null;
+        ClientResponse<Set<String>> response = null;
+        try {
+            String requestUri = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("bulk").path("put").build().toString();
+            request = requestFactory.createRequest(requestUri);
+            response = request.body(JSON_CONTENT_TYPE, context.getValues()).post();
+            if (response.getResponseStatus().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return response.getEntity(Set.class);
+            } else {
+                throw exceptionTranslator.generalException(response);
+            }
+        } catch (TerrastoreClientException e) {
+            throw e;
+        } catch (Exception e) {
+            throw getClientSideException(serverHost, e);
+        } finally {
+            if (response != null) {
+                response.releaseConnection();
+            }
+        }
+    }
+
+    private String buildRangeURI(RangeOperation.Context context,
+            String serverHost) {
+        UriBuilder uriBuilder = UriBuilder.fromUri(serverHost).path(context.getBucket()).path("range").queryParam("startKey", context.getStartKey()).
+                queryParam("limit", context.getLimit()).queryParam("timeToLive", context.getTimeToLive());
+        if (null != context.getComparator()) {
+            uriBuilder.queryParam("comparator", context.getComparator());
+        }
+        if (null != context.getEndKey()) {
+            uriBuilder.queryParam("endKey", context.getEndKey());
+        }
+        if (null != context.getPredicate()) {
+            uriBuilder.queryParam("predicate", context.getPredicate());
+        }
+        String requestUri = uriBuilder.build().toString();
+        return requestUri;
     }
 
     private ClientRequest getStatsRequest(String serverHost, String stats) {
