@@ -16,8 +16,11 @@
 package terrastore.client.connection.resteasy;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
 import terrastore.client.connection.Connection;
 import terrastore.client.connection.ConnectionFactory;
@@ -26,11 +29,27 @@ import terrastore.client.connection.TerrastoreConnectionException;
 import terrastore.client.mapping.JsonObjectDescriptor;
 
 /**
+ * HTTP connection factory based on org.apache.commons.httpclient.HttpClient.
+ *
  * @author Sven Johansson
  * @author Sergio Bossa
- *  
  */
 public class HTTPConnectionFactory implements ConnectionFactory {
+
+    private final HttpClient client;
+
+    public HTTPConnectionFactory(HttpClient client) {
+        this.client = client;
+    }
+
+    public HTTPConnectionFactory() {
+        HttpConnectionManagerParams httpParams = new HttpConnectionManagerParams();
+        httpParams.setDefaultMaxConnectionsPerHost(Runtime.getRuntime().availableProcessors() * 10);
+        httpParams.setMaxTotalConnections(Runtime.getRuntime().availableProcessors() * 10);
+        HttpConnectionManager httpManager = new MultiThreadedHttpConnectionManager();
+        httpManager.setParams(httpParams);
+        this.client = new HttpClient(httpManager);
+    }
 
     @Override
     public Connection makeConnection(HostManager hostManager, List<JsonObjectDescriptor<?>> descriptors) throws TerrastoreConnectionException {
