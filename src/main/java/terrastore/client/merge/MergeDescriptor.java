@@ -54,8 +54,8 @@ public class MergeDescriptor {
 
     }
 
-    public MergeDescriptor addToArray(String arrayKey, List<Object> values) {
-        List<Object> adds = new LinkedList<Object>();
+    public MergeDescriptor addToArray(String arrayKey, List<String> values) {
+        List<String> adds = new LinkedList<String>();
         adds.add("+");
         adds.addAll(values);
         descriptor.put(arrayKey, adds);
