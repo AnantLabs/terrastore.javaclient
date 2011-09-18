@@ -7,8 +7,8 @@
     <version>2.4-SNAPSHOT</version>
     <name>terrastore-javaclient</name>
     <scm>
-        <connection>scm:hg:https://javaclient.terrastore.googlecode.com/hg</connection>
-        <developerConnection>scm:hg:https://javaclient.terrastore.googlecode.com/hg</developerConnection>
+        <connection>scm:hg:https://code.google.com/p/terrastore.javaclient/</connection>
+        <developerConnection>scm:hg:https://code.google.com/p/terrastore.javaclient/</developerConnection>
     </scm>
     <dependencies>
         <dependency>
