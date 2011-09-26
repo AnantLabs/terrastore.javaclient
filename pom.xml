@@ -4,7 +4,7 @@
     <groupId>terrastore</groupId>
     <artifactId>terrastore-javaclient</artifactId>
     <packaging>jar</packaging>
-    <version>2.5-SNAPSHOT</version>
+    <version>2.4.1-SNAPSHOT</version>
     <name>terrastore-javaclient</name>
     <scm>
         <connection>scm:hg:https://code.google.com/p/terrastore.javaclient/</connection>
